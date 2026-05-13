@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BioAnalogy — 人体生理与生态系统类比研究</title>
+<!-- Favicon：显微镜 emoji -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;
+  background:#06080e;color:#e8ecf4;
+  display:flex;align-items:center;justify-content:center;
+  /* 整个页面可点击，鼠标设为 pointer */
+  cursor:pointer;position:relative;
+}
+
+/* ---- Canvas 粒子背景 ---- */
+canvas{position:fixed;inset:0;z-index:0}
+
+/* ---- 噪点纹理叠加 ---- */
+body::after{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  opacity:.022;
+}
+
+/* ---- 中央内容容器 ---- */
+.hero{
+  position:relative;z-index:2;text-align:center;
+  padding:0 24px;user-select:none;
+}
+
+/* 短标签：学科分类 */
+.hero-tag{
+  font-size:clamp(11px,1.4vw,14px);letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(56,189,248,.55);margin-bottom:18px;
+  opacity:0;transform:translateY(16px);
+  transition:.8s ease;
+}
+.hero-tag.show{opacity:1;transform:none}
+
+/* 主标题：渐变色 */
+.hero-title{
+  font-size:clamp(36px,7vw,72px);font-weight:800;
+  line-height:1.15;letter-spacing:-.03em;margin-bottom:6px;
+  background:linear-gradient(135deg,#38bdf8 0%,#a78bfa 50%,#4ade80 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  opacity:0;transform:translateY(24px);
+  transition:1s .2s ease;
+}
+.hero-title.show{opacity:1;transform:none}
+
+/* 打字副标题区域 */
+.hero-sub{
+  font-size:clamp(16px,2.6vw,26px);font-weight:400;
+  color:rgba(255,255,255,.5);margin-bottom:56px;min-height:1.4em;
+  letter-spacing:.02em;
+}
+.hero-sub .line{display:block}
+.hero-sub .line .text{opacity:0}
+.hero-sub .line .text.typed{opacity:1}
+/* 闪烁光标 */
+.cursor{
+  display:inline-block;width:2px;height:1em;
+  background:rgba(56,189,248,.7);vertical-align:text-bottom;
+  margin-left:2px;border-radius:1px;
+  animation:blink 1s step-end infinite;
+  opacity:0;
+}
+.cursor.active{opacity:1}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ---- 脉冲提示环 + 文字 ---- */
+.pulse-wrap{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:120px;height:120px;margin-bottom:24px;
+  opacity:0;transform:scale(.8);
+  transition:opacity .8s,transform .8s;
+}
+.pulse-wrap.show{opacity:1;transform:none}
+/* 三层脉冲波纹 */
+.pulse-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid rgba(56,189,248,.25);
+  animation:pulseOut 2.8s ease-out infinite;
+}
+.pulse-ring:nth-child(2){animation-delay:.9s}
+.pulse-ring:nth-child(3){animation-delay:1.8s}
+@keyframes pulseOut{
+  0%{transform:scale(.5);opacity:.6}
+  100%{transform:scale(1.6);opacity:0}
+}
+/* 中心圆点 */
+.pulse-core{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(56,189,248,.5);
+  box-shadow:0 0 20px rgba(56,189,248,.3);
+}
+
+.hint-text{
+  font-size:clamp(12px,1.5vw,14px);
+  color:rgba(255,255,255,.28);letter-spacing:.08em;
+  opacity:0;transition:opacity 1s .4s;
+}
+.hint-text.show{opacity:1}
+
+/* 底部年份 */
+.footer-year{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  z-index:2;font-size:11px;color:rgba(255,255,255,.15);letter-spacing:.08em;
+}
+
+/* ---- 响应式 ---- */
+@media(max-width:600px){
+  .hero-sub{margin-bottom:40px}
+  .pulse-wrap{width:100px;height:100px}
+}
+</style>
+</head>
+<body>
+
+<!-- Canvas 粒子网络背景 -->
+<canvas id="bg"></canvas>
+
+<!-- 中央主视觉 -->
+<div class="hero">
+  <p class="hero-tag">Comparative Physiology &amp; Ecology</p>
+  <h1 class="hero-title">人体 ⇄ 生态系统</h1>
+  <!-- 三行打字副标题 -->
+  <div class="hero-sub" id="hero-sub">
+    <span class="line"><span class="text"></span><span class="cursor"></span></span>
+    <span class="line"><span class="text"></span><span class="cursor"></span></span>
+    <span class="line"><span class="text"></span><span class="cursor"></span></span>
+  </div>
+  <!-- 脉冲提示环 -->
+  <div class="pulse-wrap" id="pulse-wrap">
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring"></div>
+    <div class="pulse-core"></div>
+  </div>
+  <p class="hint-text" id="hint-text">点击任意位置，开始探索</p>
+</div>
+
+<div class="footer-year">2026</div>
+
+<script>
+/* ============================================================
+   全屏点击跳转 — 监听 document click，跳转到 modules.html
+   ============================================================ */
+document.addEventListener('click',function(){
+  window.location.href='modules.html';
+});
+
+/* ============================================================
+   Canvas 粒子网络 — 科学探索感视觉背景
+   120 个粒子漂浮，距离 < 160px 自动连线，鼠标靠近粒子被轻微排斥
+   ============================================================ */
+(function(){
+  var cv=document.getElementById('bg');
+  var c=cv.getContext('2d');
+  var W,H,particles=[];
+  var DPR=Math.min(window.devicePixelRatio||1,2);
+  var COUNT=120;
+  var LINK_DIST=160;
+  var MOUSE_R=200;
+  var mx=-999,my=-999;
+
+  function resize(){
+    W=innerWidth; H=innerHeight;
+    cv.width=W*DPR; cv.height=H*DPR;
+    c.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  function init(){
+    particles=[];
+    for(var i=0;i<COUNT;i++){
+      particles.push({
+        x:Math.random()*W, y:Math.random()*H,
+        vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5,
+        r:Math.random()*1.8+.6,
+        o:Math.random()*.4+.3
+      });
+    }
+  }
+
+  function draw(){
+    c.clearRect(0,0,W,H);
+    // 中央柔和光晕
+    var g=c.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.55);
+    g.addColorStop(0,'rgba(56,189,248,.04)');
+    g.addColorStop(.4,'rgba(167,139,250,.025)');
+    g.addColorStop(1,'transparent');
+    c.fillStyle=g; c.fillRect(0,0,W,H);
+
+    // 更新粒子位置
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0){p.x=0;p.vx=Math.abs(p.vx)}
+      if(p.x>W){p.x=W;p.vx=-Math.abs(p.vx)}
+      if(p.y<0){p.y=0;p.vy=Math.abs(p.vy)}
+      if(p.y>H){p.y=H;p.vy=-Math.abs(p.vy)}
+      // 鼠标排斥力
+      var dx=p.x-mx, dy=p.y-my;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<MOUSE_R&&dist>0){
+        var f=(MOUSE_R-dist)/MOUSE_R*.8;
+        p.vx+=dx/dist*f; p.vy+=dy/dist*f;
+      }
+      p.vx*=.995; p.vy*=.995;
+    }
+
+    // 连线
+    c.lineWidth=.5;
+    for(var i=0;i<particles.length;i++){
+      for(var j=i+1;j<particles.length;j++){
+        var a=particles[i],b=particles[j];
+        var dx=a.x-b.x, dy=a.y-b.y;
+        var d=Math.sqrt(dx*dx+dy*dy);
+        if(d<LINK_DIST){
+          var alpha=(1-d/LINK_DIST)*.12;
+          c.strokeStyle='rgba(56,189,248,'+alpha+')';
+          c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();
+        }
+      }
+    }
+    // 粒子本体
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);
+      c.fillStyle='rgba(140,180,230,'+p.o+')';
+      c.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize(); init(); draw();
+  window.addEventListener('resize',function(){resize();init()});
+  window.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY});
+  window.addEventListener('mouseout',function(){mx=-999;my=-999});
+})();
+
+/* ============================================================
+   打字机动画 — 逐字显示三行副标题
+   1. 标题淡入 → 2. 逐行打字 → 3. 脉冲提示淡入
+   ============================================================ */
+(function(){
+  var LINES=[
+    '消化系统 ↔ 土壤碳循环',
+    '泌尿系统 ↔ 人工湿地净化',
+    '呼吸系统 ↔ 大气碳平衡'
+  ];
+  var SPEED=55;
+  var LINE_DELAY=400;
+  var linesEl=document.querySelectorAll('#hero-sub .line');
+  var pulseWrap=document.getElementById('pulse-wrap');
+  var hintText=document.getElementById('hint-text');
+
+  // 标题和标签立即淡入
+  requestAnimationFrame(function(){
+    document.querySelector('.hero-tag').classList.add('show');
+    document.querySelector('.hero-title').classList.add('show');
+  });
+
+  function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+
+  async function typeWriter(){
+    await sleep(1200);
+    for(var i=0;i<LINES.length;i++){
+      var textEl=linesEl[i].querySelector('.text');
+      var cur=linesEl[i].querySelector('.cursor');
+      cur.classList.add('active');
+      for(var k=0;k<LINES[i].length;k++){
+        textEl.textContent+=LINES[i][k];
+        textEl.classList.add('typed');
+        await sleep(SPEED);
+      }
+      if(i<LINES.length-1){
+        await sleep(LINE_DELAY);
+        cur.classList.remove('active');
+      }
+    }
+    // 打字完成 → 脉冲提示淡入
+    await sleep(600);
+    pulseWrap.classList.add('show');
+    hintText.classList.add('show');
+  }
+  typeWriter();
+})();
+</script>
+
+</body>
+</html>

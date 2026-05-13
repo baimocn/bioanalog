@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>模块选择 — BioAnalogy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif;
+  background:#080b12;color:#e2e8f0;line-height:1.6;
+  min-height:100vh;overflow-x:hidden;
+  display:flex;flex-direction:column;
+}
+
+/* ---- 噪点纹理 ---- */
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  opacity:.02;
+}
+
+/* ---- Canvas 粒子背景 ---- */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ---- 网格点阵 ---- */
+.bg-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(56,189,248,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(56,189,248,.025) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,black,transparent);
+  -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,black,transparent);
+}
+
+/* ---- 粘性顶栏 ---- */
+.top-bar{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;gap:14px;
+  padding:14px clamp(18px,4vw,32px);
+  background:rgba(8,11,18,.75);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.top-bar .logo{font-size:20px}
+.top-bar .brand{
+  font-size:15px;font-weight:700;letter-spacing:.02em;
+  background:linear-gradient(135deg,#38bdf8,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.top-bar .spacer{flex:1}
+.top-bar .back-link{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 14px;border-radius:20px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);
+  color:#94a3b8;font-size:13px;text-decoration:none;transition:.2s;
+}
+.top-bar .back-link:hover{
+  background:rgba(255,255,255,.1);color:#e2e8f0;text-decoration:none;
+}
+
+/* ---- 主内容区 ---- */
+.main{
+  position:relative;z-index:1;
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:0 clamp(16px,4vw,24px);
+}
+
+/* ---- 页头 ---- */
+.page-hero{
+  text-align:center;
+  padding:clamp(36px,5vw,64px) 0 clamp(20px,3vw,36px);
+  max-width:600px;
+}
+.page-hero h1{
+  font-size:clamp(24px,4vw,36px);font-weight:800;
+  line-height:1.2;margin-bottom:12px;letter-spacing:-.02em;
+  background:linear-gradient(135deg,#38bdf8,#a78bfa,#4ade80);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.page-hero p{
+  font-size:clamp(13px,1.5vw,15px);color:#94a3b8;
+  line-height:1.75;max-width:480px;margin:0 auto;
+}
+
+/* ============================================================
+   卡片网格 — 2x2 居中布局
+   ============================================================ */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:20px;
+  width:100%;max-width:720px;
+  padding-bottom:clamp(36px,5vw,56px);
+}
+
+/* ============================================================
+   卡片 — <a> 标签直接作为卡片元素
+   修复：整个卡片区域可点击，无外层 div 拦截
+   ============================================================ */
+.card{
+  display:flex;                /* 让 <a> 填满 grid cell */
+  position:relative;
+  perspective:800px;
+  transform-style:preserve-3d;
+  will-change:transform;
+  /* 入场动画初始状态 */
+  opacity:0;
+  transform:translateY(30px) scale(.95);
+  transition:opacity .7s cubic-bezier(.22,1,.36,1),
+             transform .7s cubic-bezier(.22,1,.36,1);
+  text-decoration:none;       /* 去掉 <a> 下划线 */
+  color:inherit;              /* 继承文字颜色 */
+  outline:none;
+}
+.card.visible{opacity:1;transform:translateY(0) scale(1)}
+.card:nth-child(1){transition-delay:.05s}
+.card:nth-child(2){transition-delay:.12s}
+.card:nth-child(3){transition-delay:.19s}
+.card:nth-child(4){transition-delay:.26s}
+
+/* ---- 卡片内部内容层 ---- */
+.card-body{
+  position:relative;
+  background:rgba(30,41,59,.45);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:28px 24px;
+  display:flex;flex-direction:column;gap:10px;
+  overflow:hidden;
+  width:100%;                /* 填满 <a> */
+  transition:box-shadow .4s,border-color .4s,background .4s,transform .35s;
+  cursor:pointer;
+}
+
+/* ---- 鼠标跟随光效 ---- */
+.card-body .glow{
+  position:absolute;inset:0;border-radius:16px;pointer-events:none;
+  background:radial-gradient(circle 260px at var(--mx,50%) var(--my,50%),
+    var(--glow-color,rgba(56,189,248,.1)) 0%,transparent 70%);
+  opacity:0;transition:opacity .4s;
+}
+.card:hover .card-body .glow{opacity:1}
+
+/* ---- 顶部彩色装饰条 ---- */
+.card-body::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:3px;
+  background:var(--accent,#38bdf8);
+  border-radius:16px 16px 0 0;
+  transition:height .3s,box-shadow .3s;
+}
+.card:hover .card-body::before{
+  height:4px;
+  box-shadow:0 0 12px var(--accent-glow,rgba(56,189,248,.3));
+}
+
+/* ---- 光泽扫过动画（hover 触发） ---- */
+.card-body::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.06) 45%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 55%,transparent 60%);
+  transform:translateX(-100%);
+  transition:none;pointer-events:none;
+}
+.card:hover .card-body::after{
+  transform:translateX(100%);
+  transition:transform .7s ease;
+}
+
+/* ---- 悬停态 ---- */
+.card:hover .card-body{
+  background:rgba(30,41,59,.7);
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 12px 40px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.04);
+}
+
+/* ---- 图标容器 ---- */
+.card .icon{
+  width:46px;height:46px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  background:var(--accent-bg,rgba(56,189,248,.1));
+  transition:transform .35s;
+}
+.card:hover .icon{transform:scale(1.1) rotate(-3deg)}
+
+/* ---- 卡片文字 ---- */
+.card h2{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.35}
+.card p{font-size:13px;color:#94a3b8;line-height:1.65;flex:1}
+.card .arrow{
+  font-size:12px;color:var(--accent,#38bdf8);font-weight:600;
+  display:flex;align-items:center;gap:4px;transition:gap .3s;
+}
+.card:hover .arrow{gap:9px}
+
+/* ---- 四张卡片各自的强调色 ---- */
+.card.c1{--accent:#38bdf8;--accent-bg:rgba(56,189,248,.1);--glow-color:rgba(56,189,248,.1);--accent-glow:rgba(56,189,248,.3)}
+.card.c2{--accent:#4ade80;--accent-bg:rgba(74,222,128,.1);--glow-color:rgba(74,222,128,.1);--accent-glow:rgba(74,222,128,.3)}
+.card.c3{--accent:#a78bfa;--accent-bg:rgba(167,139,250,.1);--glow-color:rgba(167,139,250,.1);--accent-glow:rgba(167,139,250,.3)}
+.card.c4{--accent:#fb923c;--accent-bg:rgba(251,146,60,.1);--glow-color:rgba(251,146,60,.1);--accent-glow:rgba(251,146,60,.3)}
+
+/* ---- 点击波纹 ---- */
+.ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.18);
+  transform:scale(0);animation:rippleOut .5s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes rippleOut{
+  to{transform:scale(2.5);opacity:0}
+}
+
+/* ---- 页脚 ---- */
+footer{
+  position:relative;z-index:1;
+  padding:clamp(28px,4vw,40px) 24px;
+  text-align:center;
+  border-top:1px solid rgba(255,255,255,.04);
+}
+footer .members{
+  font-size:13px;color:#64748b;letter-spacing:.03em;margin-bottom:8px;
+}
+footer .members span{display:inline-block;padding:0 6px}
+footer .desc{
+  font-size:12px;color:#475569;max-width:500px;
+  margin:0 auto 10px;line-height:1.7;
+}
+footer .year{
+  font-size:11px;color:rgba(255,255,255,.12);letter-spacing:.06em;
+}
+
+/* ---- 响应式 ---- */
+@media(max-width:600px){
+  .cards{grid-template-columns:1fr;max-width:380px}
+  .card-body{padding:22px 20px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="bg-grid"></div>
+
+<!-- 顶部粘性导航栏 -->
+<nav class="top-bar">
+  <span class="logo">🔬</span>
+  <span class="brand">BioAnalogy</span>
+  <span class="spacer"></span>
+  <a href="index.html" class="back-link">← 返回</a>
+</nav>
+
+<div class="main">
+  <header class="page-hero">
+    <h1>选择一个模块开始探索</h1>
+    <p>从消化、泌尿到呼吸——人体器官系统与地球生态系统之间，存在着结构性相似。点击卡片深入每一个类比。</p>
+  </header>
+
+  <!-- 四个模块卡片，2x2 网格
+       修复：每个卡片直接用 <a> 标签，无外层 div，确保整个区域可点击 -->
+  <div class="cards">
+
+    <a href="q1.html" class="card c1" title="消化系统与土壤固碳的类比">
+      <div class="card-body">
+        <div class="glow"></div>
+        <div class="icon">🌱</div>
+        <h2>消化 ⇄ 土壤固碳</h2>
+        <p>肠道酶解与土壤微生物分解有机碳的底层同构——从酶动力学到三步碳模型。</p>
+        <span class="arrow">进入模块 →</span>
+      </div>
+    </a>
+
+    <a href="q2.html" class="card c2" title="泌尿系统与人工湿地的类比">
+      <div class="card-body">
+        <div class="glow"></div>
+        <div class="icon">💧</div>
+        <h2>泌尿 ⇄ 人工湿地</h2>
+        <p>肾单位的选择性重吸收与湿地基质的梯度净化——精密调控与生态冗余的殊途同归。</p>
+        <span class="arrow">进入模块 →</span>
+      </div>
+    </a>
+
+    <a href="q3.html" class="card c3" title="呼吸系统与大气碳平衡的类比">
+      <div class="card-body">
+        <div class="glow"></div>
+        <div class="icon">🫁</div>
+        <h2>呼吸 ⇄ 大气碳平衡</h2>
+        <p>肺泡、气孔、全球碳收支——Fick 扩散定律在三个尺度上的结构映射。</p>
+        <span class="arrow">进入模块 →</span>
+      </div>
+    </a>
+
+    <a href="ai.html" class="card c4" title="与 AI 研究员默存对话">
+      <div class="card-body">
+        <div class="glow"></div>
+        <div class="icon">🧬</div>
+        <h2>AI 研究员</h2>
+        <p>与默存对话，获取基因组学、结构生物学、科学计算等领域的专业解答与方法建议。</p>
+        <span class="arrow">开始对话 →</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<footer>
+  <p class="members">
+    小组成员 ·
+    <span>傅铭胜</span><span>肖涵月</span><span>张语桐</span><span>贾晋羽</span>
+  </p>
+  <p class="desc">通过文献梳理、数据可视化与 AI 辅助问答，探索人体器官系统与生态系统在物质循环、能量转化与稳态维持上的跨尺度共性逻辑。</p>
+  <p class="year">2026</p>
+</footer>
+
+<script>
+/* ============================================================
+   Canvas 粒子背景 — 漂浮粒子 + 连线，营造深空科技感
+   ============================================================ */
+(function(){
+  var cv=document.getElementById('bg-canvas');
+  var c=cv.getContext('2d');
+  var W,H,pts=[];
+  var DPR=Math.min(window.devicePixelRatio||1,2);
+  var N=80,DIST=140;
+
+  function resize(){
+    W=innerWidth;H=innerHeight;
+    cv.width=W*DPR;cv.height=H*DPR;
+    c.setTransform(DPR,0,0,DPR,0,0);
+  }
+  function init(){
+    pts=[];
+    for(var i=0;i<N;i++) pts.push({
+      x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,
+      r:Math.random()*1.5+.5,o:Math.random()*.35+.2
+    });
+  }
+  function draw(){
+    c.clearRect(0,0,W,H);
+    var g=c.createRadialGradient(W/2,H*.4,0,W/2,H*.4,Math.max(W,H)*.5);
+    g.addColorStop(0,'rgba(56,189,248,.03)');g.addColorStop(.5,'rgba(167,139,250,.015)');g.addColorStop(1,'transparent');
+    c.fillStyle=g;c.fillRect(0,0,W,H);
+    for(var i=0;i<pts.length;i++){
+      var p=pts[i];
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+      p.x=Math.max(0,Math.min(W,p.x));
+      p.y=Math.max(0,Math.min(H,p.y));
+    }
+    c.lineWidth=.4;
+    for(var i=0;i<pts.length;i++){
+      for(var j=i+1;j<pts.length;j++){
+        var a=pts[i],b=pts[j];
+        var dx=a.x-b.x,dy=a.y-b.y;
+        var d=Math.sqrt(dx*dx+dy*dy);
+        if(d<DIST){
+          c.strokeStyle='rgba(56,189,248,'+((1-d/DIST)*.08)+')';
+          c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();
+        }
+      }
+    }
+    for(var i=0;i<pts.length;i++){
+      c.beginPath();c.arc(pts[i].x,pts[i].y,pts[i].r,0,Math.PI*2);
+      c.fillStyle='rgba(140,180,230,'+pts[i].o+')';c.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  resize();init();draw();
+  window.addEventListener('resize',function(){resize();init()});
+})();
+
+/* ============================================================
+   卡片入场动画 — IntersectionObserver 驱动
+   ============================================================ */
+(function(){
+  var cards=document.querySelectorAll('.card');
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}
+    });
+  },{threshold:.15});
+  cards.forEach(function(c){obs.observe(c)});
+})();
+
+/* ============================================================
+   3D 倾斜效果 — 鼠标在卡片上时产生 perspective 倾斜
+   ============================================================ */
+(function(){
+  document.querySelectorAll('.card').forEach(function(card){
+    var body=card.querySelector('.card-body');
+    card.addEventListener('mousemove',function(e){
+      var r=card.getBoundingClientRect();
+      var nx=(e.clientX-r.left)/r.width*2-1;
+      var ny=(e.clientY-r.top)/r.height*2-1;
+      body.style.transform='rotateY('+(nx*6)+'deg) rotateX('+(-ny*6)+'deg)';
+      var px=((e.clientX-r.left)/r.width*100).toFixed(1);
+      var py=((e.clientY-r.top)/r.height*100).toFixed(1);
+      body.style.setProperty('--mx',px+'%');
+      body.style.setProperty('--my',py+'%');
+    });
+    card.addEventListener('mouseleave',function(){
+      body.style.transform='rotateY(0) rotateX(0)';
+    });
+  });
+})();
+
+/* ============================================================
+   点击波纹效果
+   ============================================================ */
+(function(){
+  document.querySelectorAll('.card-body').forEach(function(el){
+    el.addEventListener('click',function(e){
+      var r=el.getBoundingClientRect();
+      var ripple=document.createElement('span');
+      ripple.className='ripple';
+      var size=Math.max(r.width,r.height);
+      ripple.style.width=ripple.style.height=size+'px';
+      ripple.style.left=(e.clientX-r.left-size/2)+'px';
+      ripple.style.top=(e.clientY-r.top-size/2)+'px';
+      el.appendChild(ripple);
+      ripple.addEventListener('animationend',function(){ripple.remove()});
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

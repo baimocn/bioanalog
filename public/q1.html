@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>碳的两副面孔 — 消化系统与土壤碳循环的底层同构</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;600;900&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080c;
+    --surface: #111118;
+    --surface-alt: #18181f;
+    --accent-warm: #d4a853;
+    --accent-cool: #4a9e8e;
+    --accent-warm-dim: rgba(212,168,83,0.12);
+    --accent-cool-dim: rgba(74,158,142,0.12);
+    --text-primary: #f0ece4;
+    --text-muted: #7a756e;
+    --text-dim: #4a4742;
+    --border: #2a2a30;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Noto Serif SC', 'Georgia', serif;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-bar {
+    position: fixed; top: 0; left: 0;
+    height: 2px; width: 100%;
+    background: linear-gradient(90deg, var(--accent-warm), var(--accent-cool));
+    z-index: 10000;
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform 0.1s linear;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    position: relative; padding: 2rem;
+  }
+  .hero-bg { position: absolute; inset: 0; overflow: hidden; }
+  .hero-bg::before {
+    content: ''; position: absolute;
+    top: 20%; left: -10%;
+    width: 50%; height: 60%;
+    background: radial-gradient(ellipse, rgba(212,168,83,0.06) 0%, transparent 70%);
+    animation: pulse-warm 6s ease-in-out infinite;
+  }
+  .hero-bg::after {
+    content: ''; position: absolute;
+    top: 20%; right: -10%;
+    width: 50%; height: 60%;
+    background: radial-gradient(ellipse, rgba(74,158,142,0.06) 0%, transparent 70%);
+    animation: pulse-cool 6s ease-in-out infinite 3s;
+  }
+  @keyframes pulse-warm { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+  @keyframes pulse-cool { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+
+  .hero-split { display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; position: relative; z-index: 1; }
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 0.15em;
+    text-transform: uppercase; padding: 0.4rem 1rem; border-radius: 2px;
+  }
+  .hero-tag--warm { color: var(--accent-warm); border: 1px solid rgba(212,168,83,0.3); background: var(--accent-warm-dim); }
+  .hero-tag--cool { color: var(--accent-cool); border: 1px solid rgba(74,158,142,0.3); background: var(--accent-cool-dim); }
+  .hero-bridge {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, var(--accent-warm), var(--accent-cool));
+    position: relative; animation: bridge-glow 3s ease-in-out infinite;
+  }
+  .hero-bridge::before {
+    content: ''; position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    background: var(--text-primary); border-radius: 50%;
+    transform: translate(-50%,-50%);
+    animation: carbon-dot 3s ease-in-out infinite;
+  }
+  @keyframes bridge-glow { 0%,100%{opacity:.5} 50%{opacity:1} }
+  @keyframes carbon-dot { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6} 50%{transform:translate(-50%,-50%) scale(1.5);opacity:1} }
+
+  .hero-title { font-size: clamp(2.5rem,6vw,5rem); font-weight: 900; line-height: 1.2; text-align: center; position: relative; z-index: 1; margin-bottom: 1.5rem; }
+  .hero-title .warm { color: var(--accent-warm); }
+  .hero-title .cool { color: var(--accent-cool); }
+  .hero-title .dim { color: var(--text-dim); font-weight: 300; }
+  .hero-subtitle { font-size: clamp(1rem,2vw,1.25rem); color: var(--text-muted); text-align: center; max-width: 40ch; position: relative; z-index: 1; font-weight: 300; }
+  .hero-scroll {
+    position: absolute; bottom: 3rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    color: var(--text-dim); font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.2em;
+    animation: scroll-hint 2s ease-in-out infinite;
+    cursor: pointer;
+  }
+  .hero-scroll-line { width: 1px; height: 30px; background: linear-gradient(to bottom, var(--text-dim), transparent); }
+  @keyframes scroll-hint { 0%,100%{opacity:.4;transform:translateY(0)} 50%{opacity:.8;transform:translateY(5px)} }
+
+  /* ===== SHARED SECTION STYLES ===== */
+  .section-break {
+    text-align: center; padding: 4rem 2rem 2rem;
+    position: relative;
+  }
+  .section-break::before {
+    content: ''; position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-dim);
+  }
+
+  /* ===== CORE QUESTION ===== */
+  .question { padding: 6rem 2rem; text-align: center; position: relative; }
+  .question-text { font-size: clamp(1.1rem,2.5vw,1.5rem); max-width: 50ch; margin: 0 auto; color: var(--text-primary); font-weight: 300; line-height: 2; }
+  .question-text em { font-style: normal; color: var(--accent-warm); }
+  .question-text strong { font-weight: 600; color: var(--accent-cool); }
+
+  /* ===== PARALLELS ===== */
+  .parallels { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem 6rem; position: relative; }
+  .parallels-header { text-align: center; margin-bottom: 5rem; }
+  .parallels-header h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 600; margin-bottom: 1rem; }
+  .parallels-header p { color: var(--text-muted); font-weight: 300; max-width: 40ch; margin: 0 auto; }
+
+  .parallel {
+    display: grid; grid-template-columns: 1fr auto 1fr;
+    gap: 2rem; margin-bottom: 5rem;
+    opacity: 0; transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .parallel.visible { opacity: 1; transform: translateY(0); }
+  .parallel:nth-child(even) .parallel-left { order: 3; }
+  .parallel:nth-child(even) .parallel-right { order: 1; }
+  .parallel:nth-child(even) .parallel-center { order: 2; }
+
+  .parallel-card { padding: 2rem; border-radius: 4px; position: relative; overflow: hidden; }
+  .parallel-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .parallel-card--warm { background: var(--accent-warm-dim); border: 1px solid rgba(212,168,83,0.15); }
+  .parallel-card--warm::before { background: linear-gradient(90deg, var(--accent-warm), transparent); }
+  .parallel-card--cool { background: var(--accent-cool-dim); border: 1px solid rgba(74,158,142,0.15); }
+  .parallel-card--cool::before { background: linear-gradient(90deg, var(--accent-cool), transparent); }
+  .parallel-card-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .parallel-card--warm .parallel-card-label { color: var(--accent-warm); }
+  .parallel-card--cool .parallel-card-label { color: var(--accent-cool); }
+  .parallel-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; line-height: 1.4; }
+  .parallel-card p { font-size: 0.9rem; color: var(--text-muted); font-weight: 300; line-height: 1.8; }
+  .parallel-center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 80px; padding: 1rem 0; }
+  .parallel-number { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+  .parallel-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 0.75rem; position: relative; }
+  .parallel-icon::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 1px solid var(--border); }
+  .parallel-principle { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.08em; text-align: center; max-width: 80px; line-height: 1.5; }
+
+  /* ===== UNIFIED MODEL ===== */
+  .model-section { padding: 6rem 2rem; background: var(--surface); position: relative; }
+  .model-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+  .model-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+  .model-inner h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 600; margin-bottom: 1rem; }
+  .model-inner > p { color: var(--text-muted); font-weight: 300; margin-bottom: 3rem; }
+  .flow-diagram { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 3rem 2rem; position: relative; overflow: hidden; }
+  .flow-diagram::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(212,168,83,0.04), transparent 50%), radial-gradient(ellipse at 80% 50%, rgba(74,158,142,0.04), transparent 50%); }
+  .flow-row { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1.5rem; position: relative; z-index: 1; flex-wrap: wrap; }
+  .flow-node { padding: 0.6rem 1.2rem; border-radius: 3px; font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.05em; white-space: nowrap; }
+  .flow-node--input { background: var(--accent-warm-dim); border: 1px solid rgba(212,168,83,0.2); color: var(--accent-warm); }
+  .flow-node--process { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-primary); }
+  .flow-node--output { background: var(--accent-cool-dim); border: 1px solid rgba(74,158,142,0.2); color: var(--accent-cool); }
+  .flow-arrow { color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 0.8rem; }
+  .flow-split { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+  .flow-branch { display: flex; align-items: center; gap: 0.5rem; }
+  .flow-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* ===== CARBON JOURNEY ===== */
+  .journey { padding: 8rem 2rem; position: relative; }
+  .journey-header { text-align: center; margin-bottom: 4rem; }
+  .journey-header h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 600; margin-bottom: 0.5rem; }
+  .journey-header p { color: var(--text-muted); font-weight: 300; }
+  .journey-track { max-width: 900px; margin: 0 auto; position: relative; }
+  .journey-track::before {
+    content: ''; position: absolute;
+    left: 50%; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(to bottom, var(--accent-warm), var(--accent-cool));
+    transform: translateX(-50%); opacity: 0.2;
+  }
+  .journey-stop {
+    display: grid; grid-template-columns: 1fr 80px 1fr;
+    gap: 1rem; align-items: center; margin-bottom: 4rem;
+    opacity: 0; transform: translateY(40px);
+    transition: all 0.9s cubic-bezier(0.16,1,0.3,1);
+  }
+  .journey-stop.visible { opacity: 1; transform: translateY(0); }
+  .journey-stop:nth-child(odd) .journey-desc { grid-column: 1; }
+  .journey-stop:nth-child(odd) .journey-atom { grid-column: 2; }
+  .journey-stop:nth-child(odd) .journey-side { grid-column: 3; }
+  .journey-stop:nth-child(even) .journey-desc { grid-column: 3; }
+  .journey-stop:nth-child(even) .journey-atom { grid-column: 2; }
+  .journey-stop:nth-child(even) .journey-side { grid-column: 1; }
+  .journey-atom { display: flex; justify-content: center; align-items: center; }
+  .atom-circle {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; font-weight: 400;
+    position: relative; animation: atom-pulse 4s ease-in-out infinite;
+  }
+  .atom-circle--warm { background: rgba(212,168,83,0.15); border: 1px solid rgba(212,168,83,0.4); color: var(--accent-warm); }
+  .atom-circle--cool { background: rgba(74,158,142,0.15); border: 1px solid rgba(74,158,142,0.4); color: var(--accent-cool); }
+  .atom-circle--neutral { background: rgba(240,236,228,0.08); border: 1px solid rgba(240,236,228,0.2); color: var(--text-muted); }
+  @keyframes atom-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(212,168,83,0)} 50%{transform:scale(1.08);box-shadow:0 0 20px 0 rgba(212,168,83,0.1)} }
+  .journey-desc h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.5; }
+  .journey-desc p { font-size: 0.85rem; color: var(--text-muted); font-weight: 300; line-height: 1.8; }
+  .journey-side { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.05em; line-height: 1.8; }
+  .journey-side span { display: block; }
+  .journey-side .label { color: var(--text-muted); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.25rem; }
+
+  /* ===== LAYERS ===== */
+  .layers-section { padding: 6rem 2rem; background: var(--surface); position: relative; }
+  .layers-section::before, .layers-section::after { content: ''; position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+  .layers-section::before { top: 0; }
+  .layers-section::after { bottom: 0; }
+  .layers-inner { max-width: 800px; margin: 0 auto; text-align: center; }
+  .layers-inner h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 600; margin-bottom: 0.5rem; }
+  .layers-inner > p { color: var(--text-muted); font-weight: 300; margin-bottom: 3rem; }
+  .layer-stack { display: flex; flex-direction: column; gap: 4px; position: relative; }
+  .layer-row {
+    display: grid; grid-template-columns: 1fr 120px 1fr;
+    gap: 1rem; align-items: stretch;
+    opacity: 0; transform: translateX(-20px);
+    transition: all 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .layer-row.visible { opacity: 1; transform: translateX(0); }
+  .layer-row:nth-child(1) { transition-delay: 0s; }
+  .layer-row:nth-child(2) { transition-delay: 0.15s; }
+  .layer-row:nth-child(3) { transition-delay: 0.3s; }
+  .layer-row:nth-child(4) { transition-delay: 0.45s; }
+  .layer-row:nth-child(5) { transition-delay: 0.6s; }
+  .layer-cell { padding: 1.2rem 1.5rem; border-radius: 3px; text-align: left; transition: all 0.3s ease; }
+  .layer-cell:hover { transform: translateY(-2px); }
+  .layer-cell--warm { background: rgba(212,168,83,0.06); border: 1px solid rgba(212,168,83,0.1); }
+  .layer-cell--warm:hover { background: rgba(212,168,83,0.1); border-color: rgba(212,168,83,0.25); }
+  .layer-cell--cool { background: rgba(74,158,142,0.06); border: 1px solid rgba(74,158,142,0.1); }
+  .layer-cell--cool:hover { background: rgba(74,158,142,0.1); border-color: rgba(74,158,142,0.25); }
+  .layer-cell h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .layer-cell p { font-size: 0.75rem; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+  .layer-center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .layer-depth { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 2px; background: var(--bg); }
+
+  /* ===== CHART ===== */
+  .chart-section { padding: 6rem 2rem; max-width: 900px; margin: 0 auto; }
+  .chart-section h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 600; text-align: center; margin-bottom: 0.5rem; }
+  .chart-section > p { text-align: center; color: var(--text-muted); font-weight: 300; margin-bottom: 3rem; }
+  .dual-bars { display: flex; flex-direction: column; gap: 1.5rem; }
+  .bar-group {
+    display: grid; grid-template-columns: 100px 1fr;
+    gap: 1rem; align-items: center;
+    opacity: 0; transform: translateY(15px);
+    transition: all 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .bar-group.visible { opacity: 1; transform: translateY(0); }
+  .bar-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.05em; text-align: right; }
+  .bar-pair { display: flex; flex-direction: column; gap: 4px; }
+  .bar-track { height: 24px; background: rgba(255,255,255,0.03); border-radius: 2px; overflow: hidden; position: relative; }
+  .bar-fill {
+    height: 100%; border-radius: 2px;
+    transform-origin: left; transform: scaleX(0);
+    transition: transform 1.2s cubic-bezier(0.16,1,0.3,1);
+    display: flex; align-items: center; padding-left: 0.5rem;
+    font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--bg); font-weight: 400;
+  }
+  .bar-fill.animated { transform: scaleX(1); }
+  .bar-fill--warm { background: linear-gradient(90deg, var(--accent-warm), rgba(212,168,83,0.6)); }
+  .bar-fill--cool { background: linear-gradient(90deg, var(--accent-cool), rgba(74,158,142,0.6)); }
+  .bar-sys { font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text-dim); letter-spacing: 0.08em; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); }
+
+  /* ===== TOGGLE ===== */
+  .toggle-section { padding: 6rem 2rem; background: var(--surface); position: relative; }
+  .toggle-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+  .toggle-inner { max-width: 800px; margin: 0 auto; text-align: center; }
+  .toggle-inner h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 600; margin-bottom: 0.5rem; }
+  .toggle-inner > p { color: var(--text-muted); font-weight: 300; margin-bottom: 2rem; }
+  .toggle-buttons { display: inline-flex; gap: 0; margin-bottom: 2rem; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+  .toggle-btn {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em;
+    padding: 0.6rem 1.5rem; background: transparent; color: var(--text-muted);
+    border: none; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase;
+  }
+  .toggle-btn:hover { color: var(--text-primary); }
+  .toggle-btn.active { background: var(--text-primary); color: var(--bg); }
+  .toggle-content { min-height: 200px; }
+  .toggle-panel { display: none; flex-direction: column; gap: 1rem; }
+  .toggle-panel.active { display: flex; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .detail-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: left; }
+  .detail-card { padding: 1.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); }
+  .detail-card h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .detail-card p { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; line-height: 1.7; }
+  .detail-card code { font-family: 'DM Mono', monospace; font-size: 0.7rem; padding: 0.15rem 0.4rem; background: rgba(255,255,255,0.05); border-radius: 2px; color: var(--accent-warm); }
+
+  /* ===== EVIDENCE ===== */
+  .evidence-section { max-width: 1000px; margin: 0 auto; padding: 6rem 2rem; }
+  .evidence-section h2 { font-size: clamp(1.5rem,3vw,2rem); font-weight: 600; text-align: center; margin-bottom: 1rem; }
+  .evidence-section > p { text-align: center; color: var(--text-muted); font-weight: 300; margin-bottom: 3rem; }
+  .ref-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+  .ref-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.16,1,0.3,1); }
+  .ref-card.visible { opacity: 1; transform: translateY(0); }
+  .ref-card:hover { border-color: var(--text-dim); }
+  .ref-id { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+  .ref-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.5; }
+  .ref-meta { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dim); line-height: 1.6; }
+  .ref-card:nth-child(1) { transition-delay: 0s; }
+  .ref-card:nth-child(2) { transition-delay: 0.1s; }
+  .ref-card:nth-child(3) { transition-delay: 0.2s; }
+  .ref-card:nth-child(4) { transition-delay: 0.3s; }
+  .ref-card:nth-child(5) { transition-delay: 0.4s; }
+
+  /* ===== CONCLUSION ===== */
+  .conclusion { padding: 8rem 2rem; text-align: center; position: relative; }
+  .conclusion::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+  .conclusion-quote { font-size: clamp(1.1rem,2.5vw,1.4rem); font-weight: 300; max-width: 50ch; margin: 0 auto 2rem; line-height: 2; color: var(--text-primary); }
+  .conclusion-quote mark { background: none; color: var(--accent-warm); font-weight: 600; }
+  .conclusion-quote em { font-style: normal; color: var(--accent-cool); font-weight: 600; }
+  .conclusion-summary { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 3rem; }
+
+  footer { padding: 3rem 2rem; text-align: center; border-top: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.1em; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .parallel { grid-template-columns: 1fr; gap: 1rem; }
+    .parallel:nth-child(even) .parallel-left { order: 1; }
+    .parallel:nth-child(even) .parallel-right { order: 2; }
+    .parallel:nth-child(even) .parallel-center { order: 0; }
+    .parallel-center { flex-direction: row; gap: 1rem; min-width: auto; }
+    .hero-split { flex-direction: column; gap: 1rem; }
+    .hero-bridge { width: 2px; height: 40px; }
+    .journey-stop { grid-template-columns: 48px 1fr; gap: 0.75rem; }
+    .journey-stop:nth-child(odd) .journey-desc, .journey-stop:nth-child(even) .journey-desc { grid-column: 2; }
+    .journey-stop:nth-child(odd) .journey-atom, .journey-stop:nth-child(even) .journey-atom { grid-column: 1; grid-row: 1 / 3; }
+    .journey-stop:nth-child(odd) .journey-side, .journey-stop:nth-child(even) .journey-side { display: none; }
+    .layer-row { grid-template-columns: 1fr; gap: 0.5rem; }
+    .layer-center { display: none; }
+    .layer-cell--cool { display: none; }
+    .detail-row { grid-template-columns: 1fr; }
+    .bar-group { grid-template-columns: 70px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<a href="modules.html" style="position:fixed;top:20px;left:20px;z-index:10000;display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:24px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:13px;font-family:system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:.2s;min-height:44px" onmouseover="this.style.background='rgba(255,255,255,.15)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.7)'">← 返回</a>
+
+<!-- ===== PROGRESS BAR ===== -->
+<div class="progress-bar"></div>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-split">
+    <span class="hero-tag hero-tag--warm">digestive system</span>
+    <div class="hero-bridge"></div>
+    <span class="hero-tag hero-tag--cool">soil carbon cycle</span>
+  </div>
+  <h1 class="hero-title">
+    <span class="warm">碳</span><span class="dim">的两副</span><span class="cool">面孔</span>
+  </h1>
+  <p class="hero-subtitle">从肠道到土壤，有机碳降解与固存的底层同构</p>
+  <div class="hero-scroll" onclick="document.querySelector('.question').scrollIntoView({behavior:'smooth'})">
+    SCROLL
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- ===== ① CORE QUESTION ===== -->
+<section class="question">
+  <p class="question-text">
+    人体消化系统分解有机质、物质同化，和<em>碳中和土壤固碳</em>、<strong>生态系统分解者碳循环</strong>——这两个看似尺度迥异的过程，底层究竟共享什么逻辑？
+  </p>
+</section>
+
+<!-- ===== ② FIVE PARALLELS ===== -->
+<section class="parallels">
+  <div class="parallels-header">
+    <h2>五层同构</h2>
+    <p>从热力学原理到碳分配策略，逐层揭示两个系统的结构对应</p>
+  </div>
+  <div class="parallel">
+    <div class="parallel-card parallel-card--warm">
+      <div class="parallel-card-label">消化系统</div>
+      <h3>多糖 → 寡糖 → 单糖</h3>
+      <p>蛋白质 → 多肽 → 氨基酸；脂肪 → 甘油 + 脂肪酸。从口腔到小肠，每一区段由特异性酶负责特定化学键的逐步断裂。</p>
+    </div>
+    <div class="parallel-center"><div class="parallel-number">01</div><div class="parallel-icon">⛓</div><div class="parallel-principle">级联降解</div></div>
+    <div class="parallel-card parallel-card--cool">
+      <div class="parallel-card-label">土壤生态系统</div>
+      <h3>木质素 → 纤维素 → 单糖</h3>
+      <p>凋落物被胞外酶逐步拆解：纤维素酶、木质素过氧化物酶、几丁质酶分别负责不同底物，构成完整的降解链条。</p>
+    </div>
+  </div>
+  <div class="parallel">
+    <div class="parallel-card parallel-card--warm">
+      <div class="parallel-card-label">消化系统</div>
+      <h3>消化酶 + 肠道微生物组</h3>
+      <p>淀粉酶、蛋白酶、脂肪酶在特定 pH 和温度下催化专一反应；肠道菌群发酵膳食纤维产生短链脂肪酸——本质是"体内的分解者群落"。</p>
+    </div>
+    <div class="parallel-center"><div class="parallel-number">02</div><div class="parallel-icon">⬡</div><div class="parallel-principle">催化网络</div></div>
+    <div class="parallel-card parallel-card--cool">
+      <div class="parallel-card-label">土壤生态系统</div>
+      <h3>微生物群落 + 胞外酶系</h3>
+      <p>细菌、真菌、放线菌组成分解者功能群，不同菌种分泌不同胞外酶，各自负责特定底物的降解，形成种间协作的降解网络。</p>
+    </div>
+  </div>
+  <div class="parallel">
+    <div class="parallel-card parallel-card--warm">
+      <div class="parallel-card-label">消化系统</div>
+      <h3>持续进食维持远离平衡态</h3>
+      <p>通过氧化食物有机碳维持体温、离子梯度和蛋白质合成等有序状态。能量流中断则系统趋于崩溃——经典的耗散结构。</p>
+    </div>
+    <div class="parallel-center"><div class="parallel-number">03</div><div class="parallel-icon">∇</div><div class="parallel-principle">耗散结构</div></div>
+    <div class="parallel-card parallel-card--cool">
+      <div class="parallel-card-label">土壤生态系统</div>
+      <h3>凋落物输入维持群落活性</h3>
+      <p>持续接受植被凋落物输入，维持微生物群落代谢活性和土壤团聚体结构。有机质输入停止则生物活性退化，结构瓦解。</p>
+    </div>
+  </div>
+  <div class="parallel">
+    <div class="parallel-card parallel-card--warm">
+      <div class="parallel-card-label">消化系统</div>
+      <h3>同化为组织 vs 矿化为 CO₂</h3>
+      <p>食物碳一部分同化为肌肉、脂肪、糖原，一部分经呼吸释放 CO₂。同化效率约 10-20%，其余以热量和废气形式耗散。</p>
+    </div>
+    <div class="parallel-center"><div class="parallel-number">04</div><div class="parallel-icon">⟳</div><div class="parallel-principle">同化-矿化<br>二元分配</div></div>
+    <div class="parallel-card parallel-card--cool">
+      <div class="parallel-card-label">土壤生态系统</div>
+      <h3>微生物碳泵 · 续埋效应</h3>
+      <p>碳一部分被微生物同化为细胞物质，残体转入矿物结合态碳库长期稳定；一部分被矿化为 CO₂ 释放。土壤固碳策略即提高同化比例。</p>
+    </div>
+  </div>
+  <div class="parallel">
+    <div class="parallel-card parallel-card--warm">
+      <div class="parallel-card-label">消化系统</div>
+      <h3>简单糖 → 蛋白质 → 膳食纤维</h3>
+      <p>面对化学惰性递增的碳库，需逐步攻克。纤维素几乎不可消化，穿越消化道而不被利用——对应土壤中的顽固性碳。</p>
+    </div>
+    <div class="parallel-center"><div class="parallel-number">05</div><div class="parallel-icon">△</div><div class="parallel-principle">碳化学惰性<br>梯度</div></div>
+    <div class="parallel-card parallel-card--cool">
+      <div class="parallel-card-label">土壤生态系统</div>
+      <h3>新鲜凋落物 → 木质素 → 黑碳</h3>
+      <p>易分解碳快速矿化，难降解碳（木质素、黑碳）则被转化为长期固存的碳库。每一步都依赖更特异的催化机制。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ③ UNIFIED MODEL ===== -->
+<section class="model-section">
+  <div class="model-inner">
+    <h2>统一模型</h2>
+    <p>两个系统共享同一条拓扑路径——从复杂有机碳到归宿分流</p>
+    <div class="flow-diagram">
+      <div class="flow-row">
+        <span class="flow-node flow-node--input">复杂有机碳</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-node flow-node--process">催化级联降解</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-node flow-node--process">简单有机分子</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-node flow-node--process">进一步氧化</span>
+      </div>
+      <div class="flow-row"><span class="flow-arrow">↓</span></div>
+      <div class="flow-split">
+        <div class="flow-branch">
+          <span class="flow-arrow">↗</span>
+          <span class="flow-node flow-node--output">同化 / 固存</span>
+          <span class="flow-label">组织构建 或 稳定碳库</span>
+        </div>
+        <div class="flow-branch">
+          <span class="flow-arrow">↘</span>
+          <span class="flow-node flow-node--input">矿化 / 释放</span>
+          <span class="flow-label">CO₂ + 能量</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ④ CARBON JOURNEY ===== -->
+<section class="section-break">
+  <span class="section-label">NARRATIVE</span>
+</section>
+
+<section class="journey">
+  <div class="journey-header">
+    <h2>一个碳原子的旅程</h2>
+    <p>追踪同一个碳原子在两个系统中的平行命运</p>
+  </div>
+  <div class="journey-track">
+    <div class="journey-stop">
+      <div class="journey-desc">
+        <h3>起点：复杂有机物</h3>
+        <p>碳原子锁在一个淀粉大分子的葡萄糖单元中，或锁在一片枯叶的纤维素链上。化学键将它牢牢束缚在高度还原的有机态。</p>
+      </div>
+      <div class="journey-atom"><div class="atom-circle atom-circle--neutral">C</div></div>
+      <div class="journey-side"><span class="label">氧化态</span><span>高度还原</span><span class="label" style="margin-top:0.5rem">化学势</span><span>高自由能</span></div>
+    </div>
+    <div class="journey-stop">
+      <div class="journey-desc">
+        <h3>级联降解启动</h3>
+        <p><strong>肠道</strong>：唾液淀粉酶开始断裂 α-1,4 糖苷键。<br><strong>土壤</strong>：真菌分泌纤维素酶开始断裂 β-1,4 糖苷键。<br>同样的策略——从最弱的化学键入手。</p>
+      </div>
+      <div class="journey-atom"><div class="atom-circle atom-circle--warm">C</div></div>
+      <div class="journey-side"><span class="label">催化剂</span><span>水解酶</span><span class="label" style="margin-top:0.5rem">产物</span><span>寡糖 / 双糖</span></div>
+    </div>
+    <div class="journey-stop">
+      <div class="journey-desc">
+        <h3>微生物深度加工</h3>
+        <p><strong>肠道</strong>：回肠末端，微生物群发酵难消化纤维产生短链脂肪酸。<br><strong>土壤</strong>：细菌分泌胞外酶降解半纤维素，释放有机酸和酚类中间产物。</p>
+      </div>
+      <div class="journey-atom"><div class="atom-circle atom-circle--warm">C</div></div>
+      <div class="journey-side"><span class="label">参与者</span><span>微生物群落</span><span class="label" style="margin-top:0.5rem">机制</span><span>体外修饰</span></div>
+    </div>
+    <div class="journey-stop">
+      <div class="journey-desc">
+        <h3>分流时刻：同化 vs 矿化</h3>
+        <p>碳原子面临两条路径：<br><strong>路径A</strong>：被同化入微生物体内，参与合成代谢，最终以残体形式进入稳定碳库。<br><strong>路径B</strong>：经三羧酸循环彻底氧化为 CO₂，释放到大气中。</p>
+      </div>
+      <div class="journey-atom"><div class="atom-circle atom-circle--cool">C</div></div>
+      <div class="journey-side"><span class="label">关键节点</span><span>代谢分流</span><span class="label" style="margin-top:0.5rem">决定因素</span><span>底物质量 / C:N比</span></div>
+    </div>
+    <div class="journey-stop">
+      <div class="journey-desc">
+        <h3>终局</h3>
+        <p><strong>若走路径A</strong>：碳原子成为骨骼矿化基质的一部分，或被矿物吸附，进入千年尺度的碳库——续埋效应。<br><strong>若走路径B</strong>：碳原子以 CO₂ 形式参与下一轮光合作用——开放循环。</p>
+      </div>
+      <div class="journey-atom"><div class="atom-circle atom-circle--cool">C</div></div>
+      <div class="journey-side"><span class="label">时间尺度</span><span>小时 ↔ 千年</span><span class="label" style="margin-top:0.5rem">意义</span><span>碳中和的关键</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ⑤ FIVE LAYERS ===== -->
+<section class="layers-section">
+  <div class="layers-inner">
+    <h2>五层嵌套结构</h2>
+    <p>从热力学底层到碳库表层，每一层都是上一层的涌现</p>
+    <div class="layer-stack">
+      <div class="layer-row">
+        <div class="layer-cell layer-cell--warm"><h4>线粒体氧化磷酸化</h4><p>C₆H₁₂O₆ + 6O₂ → 6CO₂ + ATP。细胞尺度的碳氧化。</p></div>
+        <div class="layer-center"><div class="layer-depth">热力学层</div></div>
+        <div class="layer-cell layer-cell--cool"><h4>微生物呼吸代谢</h4><p>土壤微生物氧化有机碳获取 ATP，释放 CO₂。相同化学计量。</p></div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-cell layer-cell--warm"><h4>消化酶级联</h4><p>淀粉酶→麦芽糖酶→葡萄糖。pH 梯度驱动的区室化降解。</p></div>
+        <div class="layer-center"><div class="layer-depth">催化层</div></div>
+        <div class="layer-cell layer-cell--cool"><h4>胞外酶网络</h4><p>纤维素酶、漆酶、过氧化物酶。由不同微生物分别分泌的协作网络。</p></div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-cell layer-cell--warm"><h4>肠道微生物组</h4><p>厚壁菌门/拟杆菌门比值影响能量同化效率。群落结构决定代谢输出。</p></div>
+        <div class="layer-center"><div class="layer-depth">群落层</div></div>
+        <div class="layer-cell layer-cell--cool"><h4>土壤微生物群落</h4><p>r-策略者（快速矿化）vs K-策略者（稳定固存）的动态平衡。</p></div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-cell layer-cell--warm"><h4>激素反馈环路</h4><p>胃泌素、CCK、胰岛素调节酶分泌和蠕动速率。信号驱动的自稳态。</p></div>
+        <div class="layer-center"><div class="layer-depth">反馈层</div></div>
+        <div class="layer-cell layer-cell--cool"><h4>底物-微生物反馈</h4><p>易分解碳耗尽触发群落演替，转向木质素降解类群。涌现性自适应。</p></div>
+      </div>
+      <div class="layer-row">
+        <div class="layer-cell layer-cell--warm"><h4>碳归宿：身体组织</h4><p>同化为肌蛋白、脂肪组织、骨基质。从活跃代谢态转入结构存储态。</p></div>
+        <div class="layer-center"><div class="layer-depth">碳库层</div></div>
+        <div class="layer-cell layer-cell--cool"><h4>碳归宿：稳定碳库</h4><p>矿物结合态有机碳（MAOC）、团聚体包裹碳。续埋效应的产物。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ⑥ BAR CHART ===== -->
+<section class="section-break">
+  <span class="section-label">QUANTITATIVE</span>
+</section>
+
+<section class="chart-section">
+  <h2>关键参数对照</h2>
+  <p>同一概念在两个系统中的量化映射</p>
+  <div class="dual-bars">
+    <div class="bar-group">
+      <div class="bar-label">降解时间</div>
+      <div class="bar-pair">
+        <div class="bar-track"><div class="bar-fill bar-fill--warm" data-width="15" style="width:15%">2-6h</div><span class="bar-sys">消化</span></div>
+        <div class="bar-track"><div class="bar-fill bar-fill--cool" data-width="85" style="width:85%">数月-数千年</div><span class="bar-sys">土壤</span></div>
+      </div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-label">同化效率</div>
+      <div class="bar-pair">
+        <div class="bar-track"><div class="bar-fill bar-fill--warm" data-width="25" style="width:25%">10-20%</div><span class="bar-sys">消化</span></div>
+        <div class="bar-track"><div class="bar-fill bar-fill--cool" data-width="40" style="width:40%">20-40%</div><span class="bar-sys">土壤微生物</span></div>
+      </div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-label">矿化比例</div>
+      <div class="bar-pair">
+        <div class="bar-track"><div class="bar-fill bar-fill--warm" data-width="80" style="width:80%">80-90%</div><span class="bar-sys">消化</span></div>
+        <div class="bar-track"><div class="bar-fill bar-fill--cool" data-width="60" style="width:60%">60-80%</div><span class="bar-sys">土壤</span></div>
+      </div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-label">微生物多样性</div>
+      <div class="bar-pair">
+        <div class="bar-track"><div class="bar-fill bar-fill--warm" data-width="30" style="width:30%">~1,000 种</div><span class="bar-sys">肠道</span></div>
+        <div class="bar-track"><div class="bar-fill bar-fill--cool" data-width="90" style="width:90%">~10,000+ 种/g</div><span class="bar-sys">土壤</span></div>
+      </div>
+    </div>
+    <div class="bar-group">
+      <div class="bar-label">空间尺度</div>
+      <div class="bar-pair">
+        <div class="bar-track"><div class="bar-fill bar-fill--warm" data-width="5" style="width:5%">~7m 消化道</div><span class="bar-sys">器官</span></div>
+        <div class="bar-track"><div class="bar-fill bar-fill--cool" data-width="100" style="width:100%">公顷级土壤剖面</div><span class="bar-sys">生态系统</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ⑦ TOGGLE DEEP DIVE ===== -->
+<section class="toggle-section">
+  <div class="toggle-inner">
+    <h2>深层机制：选择一个维度</h2>
+    <p>点击切换查看不同维度的详细对比</p>
+    <div class="toggle-buttons">
+      <button class="toggle-btn active" data-panel="enzymes">酶系统</button>
+      <button class="toggle-btn" data-panel="carbon">碳泵机制</button>
+      <button class="toggle-btn" data-panel="feedback">反馈调节</button>
+      <button class="toggle-btn" data-panel="evolution">进化视角</button>
+    </div>
+    <div class="toggle-content">
+      <div class="toggle-panel active" id="enzymes">
+        <div class="detail-row">
+          <div class="detail-card"><h4>消化酶系统</h4><p>以 <code>区室化</code> 为核心策略：胃（pH 1.5-2，胃蛋白酶）→ 十二指肠（pH 6-7，胰酶群）→ 回肠（刷状缘酶）。每一区段的 pH 和酶种类严格对应底物类型。</p></div>
+          <div class="detail-card"><h4>土壤胞外酶系统</h4><p>以 <code>功能冗余</code> 为核心策略：多种微生物可分泌功能相似的胞外酶，形成备份网络。关键酶包括纤维素酶（CBH/EG/BGL）、木质素过氧化物酶（LiP/MnP）、几丁质酶。</p></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-card"><h4>共同原理</h4><p>两者都通过 <code>降低活化能</code> 来加速有机碳的化学键断裂。消化系统依赖高度有序的区室化梯度，土壤系统依赖高度冗余的分布式网络。</p></div>
+          <div class="detail-card"><h4>前沿发现</h4><p>土壤微生物产生的 <code>氧化酶</code>（如 PMO，多糖单加氧酶）可在纤维素结晶区造成氧化断裂，与消化系统中的活性氧攻击机制形成跨尺度呼应。</p></div>
+        </div>
+      </div>
+      <div class="toggle-panel" id="carbon">
+        <div class="detail-row">
+          <div class="detail-card"><h4>肠道碳代谢</h4><p>食物碳经小肠吸收后进入 <code>门静脉</code> → 肝脏进行代谢分流：糖酵解（快速供能）、脂肪酸合成（储能）、糖异生（维持血糖）。肝脏是"中央碳分配器"。</p></div>
+          <div class="detail-card"><h4>土壤微生物碳泵（MCP）</h4><p>梁超等（2018）提出的 MCP 理论将土壤微生物碳代谢分为 <code>体外修饰</code>（ex vivo modification）和 <code>体内周转</code>（in vivo turnover）。微生物同化的碳经残体周转进入矿物结合态碳库——续埋效应。</p></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-card"><h4>碳泵效率差异</h4><p>肠道碳泵效率受 <code>C:N 比</code> 和底物类型影响；土壤碳泵效率受微生物碳利用效率（CUE, 0.2-0.4）、矿物保护能力和团聚体包裹程度共同决定。</p></div>
+          <div class="detail-card"><h4>碳中和启示</h4><p>理解 MCP 的续埋效应，可指导 <code>农业管理策略</code>：增加根系分泌物输入 → 促进微生物体内周转 → 增加 MAOC 积累 → 实现长期固碳。</p></div>
+        </div>
+      </div>
+      <div class="toggle-panel" id="feedback">
+        <div class="detail-row">
+          <div class="detail-card"><h4>消化系统的反馈环</h4><p>经典的 <code>神经-内分泌</code> 调控：食物进入胃 → 胃泌素释放 → 胃酸分泌 → 酸性食糜进入十二指肠 → 促胰液素 → 胰腺分泌碳酸氢盐 + 胰酶。精密的负反馈链。</p></div>
+          <div class="detail-card"><h4>土壤系统的反馈环</h4><p><code>底物驱动的涌现调节</code>：易分解碳充足时 r-策略细菌快速增殖高矿化率；碳耗尽后 K-策略真菌占据主导转向木质素降解，矿化率下降固碳比例上升。</p></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-card"><h4>控制论对比</h4><p>消化系统是 <code>集中式</code> 控制（神经+内分泌主导），土壤系统是 <code>分布式</code> 控制（无中央指挥，靠局部规则涌现全局行为）。工程学中"自上而下"与"自下而上"的经典对立。</p></div>
+          <div class="detail-card"><h4>共同的涌现特征</h4><p>尽管控制架构不同，两者都展现出 <code>自稳态</code> 特征：面对外部扰动，系统能通过反馈调节恢复到功能稳态。这是耗散结构的标志性属性。</p></div>
+        </div>
+      </div>
+      <div class="toggle-panel" id="evolution">
+        <div class="detail-row">
+          <div class="detail-card"><h4>代谢通路的进化保守性</h4><p>糖酵解（EMP）通路在所有已知生命形式中保守存在，已有 <code>~35 亿年</code> 历史。三羧酸循环（TCA）同样高度保守。人体细胞和土壤细菌使用同一套碳氧化"源代码"。</p></div>
+          <div class="detail-card"><h4>网络拓扑的同源性</h4><p>研究（基于叶绿体与蓝藻比较）表明：核心碳代谢通路的 <code>网络连接度</code> 在不同域的生命中高度相似。氨基酸代谢等保守模块具有明显更高的平均连接度。</p></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-card"><h4>从原核到真核</h4><p>线粒体本身就是 <code>内共生的古细菌</code>，其碳代谢酶系与土壤古细菌同源。肠道微生物与土壤微生物在碳水化合物活性酶（CAZymes）基因家族中共享大量同源基因。</p></div>
+          <div class="detail-card"><h4>进化视角的启示</h4><p>两个系统的"底层共性"是 <code>同源进化遗产</code>：35 亿年来，碳基生命在热力学约束下找到了最优的碳氧化与碳分配策略，并在不同尺度和组织层级上保守复用。</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ⑧ EVIDENCE ===== -->
+<section class="evidence-section">
+  <h2>文献支撑</h2>
+  <p>以下关键研究为上述同构性提供理论与实证基础</p>
+  <div class="ref-grid">
+    <div class="ref-card">
+      <div class="ref-id">REF 01</div>
+      <div class="ref-title">生态学代谢理论在生态系统碳循环中的应用</div>
+      <div class="ref-meta">《第四纪研究》, 2014<br>异速生长、代谢率、化学计量学和通量是跨个体-生态系统尺度的核心变量</div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-id">REF 02</div>
+      <div class="ref-title">土壤微生物碳泵：体外修饰与体内周转</div>
+      <div class="ref-meta">Li et al., Nature Microbiology, 2018<br>首次定义续埋效应，揭示微生物合成代谢对稳定碳库的贡献</div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-id">REF 03</div>
+      <div class="ref-title">代谢网络拓扑结构的进化保守性</div>
+      <div class="ref-meta">基于叶绿体与蓝藻的比较研究<br>核心碳代谢通路网络拓扑在进化上高度保守</div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-id">REF 04</div>
+      <div class="ref-title">生命现象与耗散结构</div>
+      <div class="ref-meta">化学耗散结构理论综述<br>阐述用耗散结构理论解释生物有序形态和进化现象的可能性</div>
+    </div>
+    <div class="ref-card">
+      <div class="ref-id">REF 05</div>
+      <div class="ref-title">同位素示踪验证微生物碳泵固碳路径</div>
+      <div class="ref-meta">13C 示踪实验<br>证实同化碳主要贮存于土壤团聚体矿物结合态颗粒中</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ⑨ CONCLUSION ===== -->
+<section class="conclusion">
+  <p class="conclusion-quote">
+    两者本质都是生物体对复杂有机碳进行<mark>逐级酶促水解与氧化</mark>，再将降解产物在<em>生物量同化</em>与<em>CO₂ 矿化释放</em>之间动态分配的过程。区别仅在于执行者的组织层级——一个是器官内的酶-微生物协作，一个是生态系统尺度上微生物群落驱动的碳泵。
+  </p>
+  <div class="conclusion-summary">— 从肠道到土壤，碳的逻辑从未改变 —</div>
+</section>
+
+<footer>基于代谢生态学与土壤微生物碳泵理论 · 文献综述页面</footer>
+
+<script>
+  // ===== Progress Bar =====
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    document.querySelector('.progress-bar').style.transform = `scaleX(${scrollTop / docHeight})`;
+  });
+
+  // ===== IntersectionObserver for reveals =====
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('.parallel, .ref-card, .journey-stop, .layer-row, .bar-group').forEach(el => obs.observe(el));
+
+  // ===== Bar chart animation =====
+  const barObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.bar-fill').forEach((f, i) => {
+          setTimeout(() => f.classList.add('animated'), i * 150);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.dual-bars').forEach(el => barObs.observe(el));
+
+  // ===== Toggle tabs =====
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.toggle-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(btn.dataset.panel).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

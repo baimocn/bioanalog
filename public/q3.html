@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>气体交换的三个尺度</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08090e;--sf:#10121a;--sf2:#181b26;
+  --warm:#d4a853;--cool:#5b9bd5;
+  --text:#e8e4dc;--muted:#5c5850;--dim:#2a2820;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Mono','Noto Serif SC',monospace;
+  font-weight:300;line-height:1.7;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  opacity:.028;pointer-events:none;z-index:9999;
+}
+h1,h2,h3{font-family:'Cormorant Garamond','Noto Serif SC',serif;font-weight:300;line-height:1.15}
+a{color:var(--warm)}
+
+/* Hero */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;padding:0 clamp(24px,8vw,120px);
+  position:relative;
+  background:radial-gradient(ellipse at 20% 55%,rgba(91,155,213,.06) 0%,transparent 55%),
+             radial-gradient(ellipse at 80% 40%,rgba(212,168,83,.05) 0%,transparent 50%);
+}
+.hero h1{font-size:clamp(2.6rem,6vw,5.2rem);letter-spacing:-.025em;margin-bottom:20px}
+.hero .sub{font-size:clamp(.82rem,1.3vw,1.05rem);color:var(--muted);max-width:520px;font-family:'Noto Serif SC',serif}
+.ac-w{color:var(--warm)}.ac-c{color:var(--cool)}
+.scroll-hint{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  color:var(--muted);font-size:1.3rem;animation:bob 2.4s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* Sections */
+section{padding:100px clamp(20px,8vw,120px)}
+.sec-title{font-size:clamp(1.7rem,3.2vw,2.8rem);margin-bottom:8px}
+.sec-sub{color:var(--muted);font-size:.82rem;margin-bottom:44px;font-family:'Noto Serif SC',serif}
+
+/* Scales Grid */
+.scales-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px}
+.scale-card{
+  background:var(--sf);border:1px solid rgba(255,255,255,.04);
+  border-radius:8px;padding:20px;transition:border-color .4s,box-shadow .4s;
+}
+.scale-card:hover{border-color:rgba(255,255,255,.1);box-shadow:0 0 40px rgba(212,168,83,.04)}
+.scale-tag{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.scale-card h3{font-size:1.5rem;margin-bottom:12px;font-weight:400}
+.legend{display:flex;gap:14px;margin-bottom:6px;font-size:.68rem;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot-o2{background:var(--cool);box-shadow:0 0 6px rgba(91,155,213,.5)}
+.dot-co2{background:var(--warm);box-shadow:0 0 6px rgba(212,168,83,.5)}
+.cw{position:relative;background:var(--bg);border-radius:4px;overflow:hidden;margin-bottom:10px}
+.cw canvas{display:block;width:100%;height:200px}
+.cw-labels{display:flex;justify-content:space-between;padding:5px 10px;font-size:.65rem;
+  color:var(--muted);position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(8,9,14,.85))}
+.flux-box{margin:10px 0;font-size:.7rem}
+.flux-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.flux-type{width:30px;font-weight:500}
+.flux-track{flex:1;height:3px;background:var(--sf2);border-radius:2px;position:relative;overflow:hidden}
+.flux-bar{position:absolute;top:0;height:100%;border-radius:2px;transition:width .5s ease,left .5s ease}
+.flux-dir{width:18px;text-align:center;font-size:.8rem}
+.eq-text{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);text-align:center;
+  padding:8px 0;border-top:1px solid rgba(255,255,255,.04);margin-top:6px}
+
+/* Controls */
+.controls{
+  display:flex;gap:28px;flex-wrap:wrap;padding:20px 24px;
+  background:var(--sf);border:1px solid rgba(255,255,255,.04);border-radius:8px;
+}
+.sg{flex:1;min-width:180px}
+.sg label{display:block;font-size:.7rem;color:var(--muted);margin-bottom:6px;letter-spacing:.04em}
+.sg input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:3px;
+  background:var(--sf2);border-radius:2px;outline:none}
+.sg input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--warm);cursor:pointer;box-shadow:0 0 8px rgba(212,168,83,.35)}
+.sv{text-align:right;font-size:.68rem;color:var(--text);margin-top:3px}
+
+/* Unified */
+.unified{
+  text-align:center;padding:110px clamp(20px,8vw,120px);
+  background:linear-gradient(180deg,var(--bg) 0%,var(--sf) 50%,var(--bg) 100%);
+}
+.eq-hero{
+  font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,4.8rem);
+  font-weight:300;letter-spacing:.06em;padding:36px 0;
+}
+.eq-three{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:40px;text-align:left}
+.eq-item{padding:18px;border:1px solid rgba(255,255,255,.04);border-radius:6px;
+  font-family:'DM Mono',monospace;font-size:.78rem;line-height:1.6}
+.eq-item .eq-sc{font-family:'Cormorant Garamond','Noto Serif SC',serif;font-size:.95rem;color:var(--muted);margin-bottom:6px}
+
+/* Breakpoints */
+.bp table{width:100%;border-collapse:collapse;font-size:.76rem}
+.bp th{font-family:'Cormorant Garamond','Noto Serif SC',serif;font-weight:400;font-size:.95rem;
+  text-align:left;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);color:var(--muted)}
+.bp td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:top;line-height:1.6}
+.bp tr:hover td{background:rgba(255,255,255,.012)}
+.hl{color:var(--warm);font-weight:500}
+
+footer{padding:36px clamp(20px,8vw,120px);text-align:center;color:var(--muted);font-size:.66rem;border-top:1px solid rgba(255,255,255,.04)}
+
+/* Fade animation */
+.fu{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s ease}
+.fu.vis{opacity:1;transform:none}
+.fu:nth-child(2){transition-delay:.1s}
+.fu:nth-child(3){transition-delay:.2s}
+
+@media(max-width:960px){
+  .scales-grid,.eq-three{grid-template-columns:1fr}
+  section{padding:60px 5vw}
+  .hero{padding:0 5vw}
+  .controls{flex-direction:column;gap:16px}
+}
+</style>
+</head>
+<body>
+
+<a href="modules.html" style="position:fixed;top:20px;left:20px;z-index:10000;display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:24px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:13px;font-family:system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:.2s;min-height:44px" onmouseover="this.style.background='rgba(255,255,255,.15)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.7)'">← 返回</a>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <h1 class="fu">气体交换的<br><span class="ac-w">三个尺度</span></h1>
+  <p class="sub fu">肺泡、气孔、全球碳收支——<br>同一条 Fick 扩散定律在三个尺度上的结构映射</p>
+  <div class="scroll-hint">↓</div>
+</section>
+
+<!-- ============ THREE SCALES ============ -->
+<section>
+  <h2 class="sec-title fu">三个尺度的交换界面</h2>
+  <p class="sec-sub fu">粒子沿浓度梯度穿越膜界面 · 系统级浓度由源-汇净值决定</p>
+
+  <div class="scales-grid">
+    <!-- Alveoli -->
+    <div class="scale-card fu">
+      <div class="scale-tag">微 观</div>
+      <h3>肺 泡</h3>
+      <div class="legend"><span><span class="dot dot-o2"></span> O₂</span><span><span class="dot dot-co2"></span> CO₂</span></div>
+      <div class="cw"><canvas id="cv-a"></canvas><div class="cw-labels"><span>肺泡腔</span><span>毛细血管</span></div></div>
+      <div class="flux-box" id="fx-a"></div>
+      <div class="eq-text">J<sub>O₂</sub> = g<sub>L</sub>·ΔpO₂ &nbsp;·&nbsp; J<sub>CO₂</sub> = g<sub>L</sub>·ΔpCO₂</div>
+    </div>
+    <!-- Stomata -->
+    <div class="scale-card fu">
+      <div class="scale-tag">介 观</div>
+      <h3>气 孔</h3>
+      <div class="legend"><span><span class="dot dot-o2"></span> O₂</span><span><span class="dot dot-co2"></span> CO₂</span></div>
+      <div class="cw"><canvas id="cv-s"></canvas><div class="cw-labels"><span>大气</span><span>叶肉细胞</span></div></div>
+      <div class="flux-box" id="fx-s"></div>
+      <div class="eq-text">J<sub>CO₂</sub> = g<sub>s</sub>·(C<sub>a</sub> − C<sub>i</sub>)</div>
+    </div>
+    <!-- Global -->
+    <div class="scale-card fu">
+      <div class="scale-tag">宏 观</div>
+      <h3>全球碳收支</h3>
+      <div class="legend"><span><span class="dot dot-co2"></span> CO₂ 碳通量</span></div>
+      <div class="cw"><canvas id="cv-g"></canvas><div class="cw-labels"><span>大气 CO₂</span><span>地表碳系统</span></div></div>
+      <div class="flux-box" id="fx-g"></div>
+      <div class="eq-text">dC<sub>atm</sub>/dt = F<sub>化石</sub> + R<sub>eco</sub> − GPP − F<sub>海洋</sub></div>
+    </div>
+  </div>
+
+  <div class="controls fu">
+    <div class="sg">
+      <label>气孔导度 / 通气效率 <span class="sv" id="sv-g">50%</span></label>
+      <input type="range" id="sl-g" min="5" max="100" value="50">
+    </div>
+    <div class="sg">
+      <label>光合速率（光照强度） <span class="sv" id="sv-l">70%</span></label>
+      <input type="range" id="sl-l" min="0" max="100" value="70">
+    </div>
+    <div class="sg">
+      <label>化石燃料排放 <span class="sv" id="sv-f">30%</span></label>
+      <input type="range" id="sl-f" min="0" max="100" value="30">
+    </div>
+  </div>
+</section>
+
+<!-- ============ UNIFIED ============ -->
+<section class="unified fu">
+  <h2 class="sec-title">统一的物理</h2>
+  <p class="sec-sub">三个尺度共享同一扩散方程结构</p>
+  <div class="eq-hero"><span class="ac-c">J</span> = <span class="ac-w">g</span> · Δ<span class="ac-c">p</span></div>
+  <div class="eq-three">
+    <div class="eq-item"><div class="eq-sc">肺泡</div>J = g<sub>L</sub> · (pO₂<sub>alv</sub> − pO₂<sub>cap</sub>)<br>血液 pCO₂ 由组织代谢产率与肺泡清除率净值决定</div>
+    <div class="eq-item"><div class="eq-sc">叶片</div>J = g<sub>s</sub> · (C<sub>a</sub> − C<sub>i</sub>)<br>叶片净通量由光合吸收与呼吸排放的瞬时差值决定</div>
+    <div class="eq-item"><div class="eq-sc">全球</div>F<sub>net</sub> = Σ(source) − Σ(sink)<br>大气 CO₂ 由化石排放、呼吸与光合+海洋吸收的净值决定</div>
+  </div>
+</section>
+
+<!-- ============ BREAKPOINTS ============ -->
+<section class="bp fu">
+  <h2 class="sec-title">类比的限度</h2>
+  <p class="sec-sub">结构同构不等于完全等价——以下是关键断裂点</p>
+  <table>
+    <thead><tr><th>维度</th><th>人体呼吸</th><th>植被-大气系统</th></tr></thead>
+    <tbody>
+      <tr><td>代谢方向</td><td><span class="hl">单向</span>：组织恒为 O₂ 汇 / CO₂ 源</td><td><span class="hl">双向</span>：光合与呼吸同时进行，净方向可逆</td></tr>
+      <tr><td>反馈速度</td><td>秒-分钟级化学感受器闭环</td><td>年-十年级，受气候系统耦合影响</td></tr>
+      <tr><td>系统均质性</td><td>单一有机体，精密调控</td><td>数十亿独立个体的统计集合，空间异质性极大</td></tr>
+      <tr><td>源汇可逆性</td><td>同一组织不会翻转代谢角色</td><td>同一森林可从碳汇翻转为碳源（砍伐、干旱）</td></tr>
+      <tr><td>非生物组分</td><td>无对应</td><td>海洋吸收、化石燃烧等无肺泡类比的外部项</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>Fick 扩散定律 · 三个尺度的气体交换类比</footer>
+
+<script>
+// ============ PARTICLE SYSTEM ============
+const DPR = Math.min(window.devicePixelRatio||1, 2);
+
+class Gas {
+  constructor(id, cfg) {
+    this.cv = document.getElementById(id);
+    this.ctx = this.cv.getContext('2d');
+    this.cfg = cfg;
+    this.ps = [];          // particles
+    this.fluxH = {O2:[],CO2:[]}; // rolling flux history
+    this._resize();
+    this._init();
+    this._ro = new ResizeObserver(()=>this._resize());
+    this._ro.observe(this.cv);
+  }
+
+  _resize() {
+    const r = this.cv.getBoundingClientRect();
+    this.cv.width = r.width * DPR;
+    this.cv.height = r.height * DPR;
+    this.ctx.setTransform(DPR,0,0,DPR,0,0);
+    this.w = r.width; this.h = r.height;
+    this.mx = this.w / 2;
+  }
+
+  _init() {
+    const c = this.cfg;
+    for (let i=0;i<c.iLO2;i++) this._add('O2','l');
+    for (let i=0;i<c.iLCO2;i++) this._add('CO2','l');
+    for (let i=0;i<c.iRO2;i++) this._add('O2','r');
+    for (let i=0;i<c.iRCO2;i++) this._add('CO2','r');
+  }
+
+  _add(type, side) {
+    const pad = 12, mw = 8;
+    const x = side==='l'
+      ? pad + Math.random()*(this.mx-mw-pad)
+      : this.mx+mw + Math.random()*(this.w-this.mx-mw-pad);
+    const y = pad + Math.random()*(this.h-2*pad);
+    this.ps.push({x,y,vx:(Math.random()-.5)*1.8,vy:(Math.random()-.5)*1.8,
+      type,side,r:type==='O2'?3.2:4.2,glow:0});
+  }
+
+  _count(type,side){let n=0;for(const p of this.ps)if(p.type===type&&p.side===side)n++;return n}
+
+  _maintain(type,side,target,rate){
+    const n=this._count(type,side);
+    if(n<target&&Math.random()<rate) this._add(type,side);
+    else if(n>target+2&&Math.random()<rate){
+      const i=this.ps.findIndex(p=>p.type===type&&p.side===side);
+      if(i>=0)this.ps.splice(i,1);
+    }
+  }
+
+  update(g, light, fossil) {
+    const mw=8, pad=6;
+    for(const p of this.ps){
+      p.vx+=(Math.random()-.5)*.55;
+      p.vy+=(Math.random()-.5)*.55;
+      p.vx*=.92; p.vy*=.92;
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.y<p.r+pad){p.y=p.r+pad;p.vy=Math.abs(p.vy)*.4}
+      if(p.y>this.h-p.r-pad){p.y=this.h-p.r-pad;p.vy=-Math.abs(p.vy)*.4}
+      if(p.x<p.r+pad){p.x=p.r+pad;p.vx=Math.abs(p.vx)*.4}
+      if(p.x>this.w-p.r-pad){p.x=this.w-p.r-pad;p.vx=-Math.abs(p.vx)*.4}
+
+      // membrane
+      if(Math.abs(p.x-this.mx)<mw+p.r){
+        if(Math.random()<g*.065){
+          const dir = p.x<this.mx?1:-1;
+          p.x = this.mx + dir*(mw+p.r+2);
+          const oldSide = p.side;
+          p.side = p.side==='l'?'r':'l';
+          p.glow=1;
+          this.fluxH[p.type].push(dir);
+          if(this.fluxH[p.type].length>90) this.fluxH[p.type].shift();
+        } else {
+          if(p.x<this.mx) p.vx=-Math.abs(p.vx)*.55;
+          else p.vx=Math.abs(p.vx)*.55;
+        }
+      }
+      p.glow*=.94;
+    }
+    this._sources(g, light, fossil);
+  }
+
+  _sources(g, light, fossil){
+    const t = this.cfg.type;
+    if(t==='a'){
+      this._maintain('O2','l',15,.025);
+      this._maintain('CO2','r',15,.025);
+      this._maintain('O2','r',4,.015);
+      this._maintain('CO2','l',4,.015);
+    } else if(t==='s'){
+      const photoR = light*.022;
+      const respR  = .01;
+      // right side targets shift with light
+      const tO2r = Math.round(6 + light*10);  // 6→16
+      const tCO2r = Math.round(12 - light*9); // 12→3
+      this._maintain('O2','l',8,.02);
+      this._maintain('CO2','l',10,.02);
+      this._maintain('O2','r',tO2r,.025);
+      this._maintain('CO2','r',tCO2r,.025);
+    } else if(t==='g'){
+      const lt = Math.round(8 + fossil*14); // 8→22
+      this._maintain('CO2','l',lt,.03);
+      this._maintain('CO2','r',18,.02);
+    }
+  }
+
+  flux(type){
+    const h=this.fluxH[type]; if(!h||!h.length)return 0;
+    return h.reduce((a,b)=>a+b,0)/h.length;
+  }
+
+  draw(){
+    const c=this.ctx, w=this.w, h=this.h;
+    c.clearRect(0,0,w,h);
+
+    // subtle bg gradient
+    const bg=c.createLinearGradient(0,0,w,0);
+    if(this.cfg.hasO2!==false){
+      bg.addColorStop(0,'rgba(91,155,213,.025)');
+      bg.addColorStop(.5,'transparent');
+    }
+    bg.addColorStop(1,'rgba(212,168,83,.025)');
+    c.fillStyle=bg; c.fillRect(0,0,w,h);
+
+    // membrane
+    c.save();
+    c.strokeStyle='rgba(255,255,255,.1)';
+    c.lineWidth=1.2;
+    c.setLineDash([5,5]);
+    c.beginPath();c.moveTo(this.mx,6);c.lineTo(this.mx,h-6);c.stroke();
+    c.setLineDash([]);c.restore();
+
+    // particles
+    for(const p of this.ps){
+      c.save();
+      const col = p.type==='O2'?'#6aafe6':'#e8b84a';
+      const gl  = p.type==='O2'?'rgba(106,175,230,.3)':'rgba(232,184,74,.3)';
+      c.shadowColor=gl;
+      c.shadowBlur=8+p.glow*14;
+      c.globalAlpha=.85+p.glow*.15;
+      c.fillStyle=col;
+      c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();
+      c.restore();
+    }
+  }
+}
+
+// ============ INIT SYSTEMS ============
+const sysA = new Gas('cv-a',{iLO2:15,iLCO2:4,iRO2:4,iRCO2:15,type:'a',hasO2:true});
+const sysS = new Gas('cv-s',{iLO2:8,iLCO2:10,iRO2:10,iRCO2:6,type:'s',hasO2:true});
+const sysG = new Gas('cv-g',{iLO2:0,iLCO2:10,iRO2:0,iRCO2:18,type:'g',hasO2:false});
+
+// ============ SLIDERS ============
+const slG=document.getElementById('sl-g');
+const slL=document.getElementById('sl-l');
+const slF=document.getElementById('sl-f');
+const svG=document.getElementById('sv-g');
+const svL=document.getElementById('sv-l');
+const svF=document.getElementById('sv-f');
+slG.oninput=()=>svG.textContent=slG.value+'%';
+slL.oninput=()=>svL.textContent=slL.value+'%';
+slF.oninput=()=>svF.textContent=slF.value+'%';
+
+// ============ FLUX DISPLAY ============
+function fluxHTML(label, val, color){
+  const abs=Math.abs(val), bw=Math.min(abs*35,48);
+  const dir = val>.04?'→':val<-.04?'←':'≈';
+  const left = val>=0?'50%':(50-bw)+'%';
+  return `<div class="flux-row">
+    <span class="flux-type" style="color:${color}">${label}</span>
+    <div class="flux-track"><div class="flux-bar" style="width:${bw}%;left:${left};background:${color}"></div></div>
+    <span class="flux-dir" style="color:${color}">${dir}</span>
+  </div>`;
+}
+function showFlux(el, sys, types){
+  let h='';
+  for(const t of types){
+    h+=fluxHTML(t.label, sys.flux(t.type), t.color);
+  }
+  el.innerHTML=h;
+}
+
+const fxA=document.getElementById('fx-a');
+const fxS=document.getElementById('fx-s');
+const fxG=document.getElementById('fx-g');
+
+// ============ ANIMATION LOOP ============
+let frame=0;
+function loop(){
+  const g=slG.value/100, l=slL.value/100, f=slF.value/100;
+  sysA.update(g,l,f); sysA.draw();
+  sysS.update(g,l,f); sysS.draw();
+  sysG.update(g,l,f); sysG.draw();
+
+  if(frame%12===0){
+    showFlux(fxA,sysA,[{type:'O2',label:'O₂',color:'var(--cool)'},{type:'CO2',label:'CO₂',color:'var(--warm)'}]);
+    showFlux(fxS,sysS,[{type:'O2',label:'O₂',color:'var(--cool)'},{type:'CO2',label:'CO₂',color:'var(--warm)'}]);
+    showFlux(fxG,sysG,[{type:'CO2',label:'CO₂',color:'var(--warm)'}]);
+  }
+  frame++;
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ============ SCROLL ANIMATIONS ============
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')});
+},{threshold:.08});
+document.querySelectorAll('.fu').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

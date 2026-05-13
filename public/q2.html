@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>梯度之镜 — 肾单位与人工湿地的净化逻辑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;600;900&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b10;
+  --surface: #0f1419;
+  --bio: #4a9eff;
+  --bio-glow: rgba(74, 158, 255, 0.15);
+  --eco: #3dd68c;
+  --eco-glow: rgba(61, 214, 140, 0.15);
+  --accent: #f0b429;
+  --text: #e8e4dc;
+  --text-muted: #6a665e;
+  --divider: #1e252d;
+  --font-display: 'Noto Serif SC', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-display);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* === GRAIN OVERLAY === */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* === SCROLL ANIMATIONS === */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* === HERO === */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 25% 50%, rgba(74,158,255,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 75% 50%, rgba(61,214,140,0.08) 0%, transparent 70%);
+  z-index: 0;
+}
+
+.hero-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 300px; height: 300px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0.06;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.06; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.03; }
+}
+
+.hero-content { position: relative; z-index: 1; }
+
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
+}
+
+.hero h1 .bio-text { color: var(--bio); }
+.hero h1 .eco-text { color: var(--eco); }
+.hero h1 .amp { color: var(--accent); font-weight: 300; }
+
+.hero-sub {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 300;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
+}
+
+.scroll-hint {
+  opacity: 0; animation: fadeUp 0.8s 0.8s forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+}
+
+.scroll-line {
+  width: 1px; height: 48px;
+  background: linear-gradient(to bottom, var(--text-muted), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 0.8; transform: scaleY(1.2); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === SECTION COMMON === */
+.section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6rem 2rem;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+.section-desc {
+  font-size: 1.05rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  max-width: 700px;
+  margin-bottom: 3rem;
+}
+
+/* === SPLIT STAGE === */
+.split-stage {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin: 4rem 0;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  min-height: 420px;
+}
+
+.split-stage::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 1px;
+  background: var(--divider);
+  z-index: 2;
+}
+
+.split-side {
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.split-left {
+  background: linear-gradient(135deg, rgba(74,158,255,0.05) 0%, var(--surface) 100%);
+}
+
+.split-right {
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(61,214,140,0.05) 100%);
+}
+
+.split-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.split-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.split-title.bio { color: var(--bio); }
+.split-title.eco { color: var(--eco); }
+
+.split-text {
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.stage-bridge {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* === STAGE NUMBER === */
+.stage-num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stage-num::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--divider);
+}
+
+/* === GRADIENT INTERACTIVE === */
+.gradient-section {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 3rem;
+  margin: 4rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-visual {
+  display: flex;
+  gap: 2rem;
+  align-items: stretch;
+  min-height: 400px;
+}
+
+.gradient-bar-wrapper {
+  flex: 0 0 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gradient-bar {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.3s;
+}
+
+.gradient-bar:hover { filter: brightness(1.2); }
+
+.gradient-bar-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.gradient-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.gradient-card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--divider);
+  background: rgba(255,255,255,0.02);
+  opacity: 0.4;
+  transition: all 0.4s ease;
+  cursor: default;
+}
+
+.gradient-card.active {
+  opacity: 1;
+  border-color: var(--accent);
+  background: rgba(240, 180, 41, 0.04);
+}
+
+.gradient-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.gradient-card-desc {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.gradient-card-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-top: 0.6rem;
+}
+
+.gradient-card-tag.bio-tag {
+  background: rgba(74,158,255,0.15);
+  color: var(--bio);
+}
+
+.gradient-card-tag.eco-tag {
+  background: rgba(61,214,140,0.15);
+  color: var(--eco);
+}
+
+/* === SHARED LOGIC === */
+.shared-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin: 3rem 0;
+}
+
+.shared-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid var(--divider);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.shared-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--bio), var(--eco));
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+  transform-origin: left;
+}
+
+.shared-card:hover::before { transform: scaleX(1); }
+
+.shared-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+}
+
+.shared-card-num {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.2em;
+}
+
+.shared-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.shared-card-desc {
+  font-size: 0.75rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* === DIFF TABLE === */
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.9rem;
+}
+
+.diff-table thead th {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid var(--divider);
+  color: var(--text-muted);
+}
+
+.diff-table tbody td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--divider);
+  vertical-align: top;
+}
+
+.diff-table tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.diff-table .col-dim {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.diff-table .col-bio {
+  color: var(--bio);
+}
+
+.diff-table .col-eco {
+  color: var(--eco);
+}
+
+/* === CONCLUSION === */
+.conclusion {
+  background: linear-gradient(135deg, rgba(74,158,255,0.04), rgba(61,214,140,0.04));
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 3rem;
+  margin: 4rem 0;
+  text-align: center;
+}
+
+.conclusion-quote {
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-weight: 300;
+  line-height: 1.8;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.conclusion-quote strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.conclusion-source {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2rem;
+  letter-spacing: 0.1em;
+}
+
+/* === FOOTER === */
+.footer {
+  text-align: center;
+  padding: 4rem 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  border-top: 1px solid var(--divider);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* === ANIMATED WATER === */
+.water-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--bio), var(--eco), transparent);
+  margin: 3rem auto;
+  max-width: 600px;
+  border-radius: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.water-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: waterShimmer 3s ease-in-out infinite;
+}
+
+@keyframes waterShimmer {
+  0% { left: -60%; }
+  100% { left: 160%; }
+}
+
+/* === FLOW ARROWS === */
+.flow-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.flow-node {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.flow-node.bio-node {
+  background: rgba(74,158,255,0.1);
+  border: 1px solid rgba(74,158,255,0.3);
+  color: var(--bio);
+}
+
+.flow-node.eco-node {
+  background: rgba(61,214,140,0.1);
+  border: 1px solid rgba(61,214,140,0.3);
+  color: var(--eco);
+}
+
+.flow-arrow {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .split-stage {
+    grid-template-columns: 1fr;
+  }
+  .split-stage::before {
+    top: 50%; left: 0; right: 0;
+    bottom: auto;
+    width: 100%; height: 1px;
+  }
+  .stage-bridge {
+    top: 50%; left: 50%;
+  }
+  .shared-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .gradient-visual {
+    flex-direction: column;
+  }
+  .gradient-bar-wrapper {
+    flex: 0 0 auto;
+    flex-direction: row;
+    height: 60px;
+  }
+  .gradient-bar {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .shared-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<a href="modules.html" style="position:fixed;top:20px;left:20px;z-index:10000;display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:24px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:13px;font-family:system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:.2s;min-height:44px" onmouseover="this.style.background='rgba(255,255,255,.15)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.7)'">← 返回</a>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-center"></div>
+  <div class="hero-content">
+    <div class="hero-label">Comparative Systems Biology &amp; Ecological Engineering</div>
+    <h1>
+      <span class="bio-text">肾单位</span>
+      <span class="amp"> × </span>
+      <span class="eco-text">人工湿地</span>
+      <br>梯度之镜
+    </h1>
+    <p class="hero-sub">
+      人体泌尿系统过滤废物、维持水盐稳态，与人工湿地生态修复净水、氮磷净化——两条逻辑，一面镜子。
+    </p>
+  </div>
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ===== STAGE 1: 初滤 ===== -->
+<section class="section reveal">
+  <div class="stage-num">STAGE 01 — 初滤分离</div>
+  <h2 class="section-title">第一步：把"该留的"和"该走的"分开</h2>
+  <p class="section-desc">
+    无论是血液还是污水，净化的第一步都是物理分离——用压力或重力，让流体通过屏障，截留不该走的。
+  </p>
+  <div class="split-stage">
+    <div class="split-side split-left">
+      <div class="split-icon">🩸</div>
+      <div class="split-title bio">肾小球滤过</div>
+      <p class="split-text">
+        血液经入球小动脉加压，以 125 mL/min 的速率通过有孔毛细血管壁。血细胞和大分子蛋白被截留，滤液（原尿）进入肾小管。
+      </p>
+    </div>
+    <div class="split-side split-right">
+      <div class="split-icon">🌿</div>
+      <div class="split-title eco">介质物理截留</div>
+      <p class="split-text">
+        污水经格栅和沉砂池初步去除悬浮物后，穿越砾石/砂质介质层，颗粒态污染物被物理截留，溶解态组分随水流继续前进。
+      </p>
+    </div>
+    <div class="stage-bridge">≈</div>
+  </div>
+</section>
+
+<div class="water-line"></div>
+
+<!-- ===== STAGE 2: 选择性回收 ===== -->
+<section class="section reveal">
+  <div class="stage-num">STAGE 02 — 选择性回收</div>
+  <h2 class="section-title">第二步：把"有用的"抢回来</h2>
+  <p class="section-desc">
+    初滤之后，不是所有滤过的东西都该丢弃。系统用"选择性亲和力"将有价值的物质从流动相中重新捕获。
+  </p>
+  <div class="split-stage">
+    <div class="split-side split-left">
+      <div class="split-icon">🔬</div>
+      <div class="split-title bio">近曲小管重吸收</div>
+      <p class="split-text">
+        约 65% 的滤过水、Na⁺、几乎全部葡萄糖和氨基酸，通过基底侧 Na⁺/K⁺-ATPase 建立的离子梯度驱动主动转运，被重新吸收回血液。
+      </p>
+    </div>
+    <div class="split-side split-right">
+      <div class="split-icon">🪨</div>
+      <div class="split-title eco">介质吸附与离子交换</div>
+      <p class="split-text">
+        湿地填料（如沸石对 NH₄⁺ 的选择性吸附、铁铝基质对 PO₄³⁻ 的化学沉淀）将溶解态氮、磷从水中"提取"并固定在介质表面。
+      </p>
+    </div>
+    <div class="stage-bridge">≈</div>
+  </div>
+</section>
+
+<div class="water-line"></div>
+
+<!-- ===== STAGE 3: 梯度转化 (Interactive) ===== -->
+<section class="section reveal">
+  <div class="stage-num">STAGE 03 — 梯度驱动转化</div>
+  <h2 class="section-title">第三步：让梯度替你工作</h2>
+  <p class="section-desc">
+    这是整个系统最精妙的环节——利用空间中建立的浓度/能量梯度，让物质沿梯度方向发生有序的物理或化学转化。
+  </p>
+
+  <div class="gradient-section">
+    <div style="text-align:center; margin-bottom: 2rem;">
+      <span style="font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.2em; color: var(--text-muted);">
+        INTERACTIVE — CLICK EACH ZONE
+      </span>
+    </div>
+    <div class="gradient-visual">
+      <!-- Kidney gradient bar -->
+      <div style="flex: 0 0 60px;">
+        <div style="text-align:center; margin-bottom:0.5rem; font-family: var(--font-mono); font-size: 0.6rem; color: var(--bio); letter-spacing: 0.15em;">肾脏</div>
+        <div class="gradient-bar-wrapper" style="height: 380px; flex-direction: column;">
+          <div class="gradient-bar" style="background: #1a3a5c;" data-zone="kidney-1">
+            <span class="gradient-bar-label" style="top: 50%; transform: translate(-50%, -50%);">皮质</span>
+          </div>
+          <div class="gradient-bar" style="background: #2a5a8c;" data-zone="kidney-2">
+            <span class="gradient-bar-label" style="top: 50%; transform: translate(-50%, -50%);">外髓</span>
+          </div>
+          <div class="gradient-bar" style="background: #3a7abc;" data-zone="kidney-3">
+            <span class="gradient-bar-label" style="top: 50%; transform: translate(-50%, -50%);">内髓</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info cards -->
+      <div class="gradient-info">
+        <div class="gradient-card active" id="card-kidney-1">
+          <span class="gradient-card-tag bio-tag">300 mOsm/L</span>
+          <div class="gradient-card-title">皮质层 — 低渗透压区</div>
+          <p class="gradient-card-desc">原尿进入此处，渗透压与血浆相近。近曲小管在此完成大部分重吸收，将水分和营养物质回收至血液。</p>
+        </div>
+        <div class="gradient-card" id="card-kidney-2">
+          <span class="gradient-card-tag bio-tag">600 mOsm/L</span>
+          <div class="gradient-card-title">外髓层 — 中间梯度</div>
+          <p class="gradient-card-desc">亨利氏袢升支在此主动泵出 NaCl（但不通水），使间质渗透压升高。这是逆流倍增系统的核心驱动力。</p>
+        </div>
+        <div class="gradient-card" id="card-kidney-3">
+          <span class="gradient-card-tag bio-tag">1200 mOsm/L</span>
+          <div class="gradient-card-title">内髓层 — 高渗透压区</div>
+          <p class="gradient-card-desc">间质渗透压达到最高。尿素在此参与循环，集合管在 ADH 调控下决定是浓缩还是稀释终尿。</p>
+        </div>
+      </div>
+
+      <!-- Wetland gradient bar -->
+      <div style="flex: 0 0 60px;">
+        <div style="text-align:center; margin-bottom:0.5rem; font-family: var(--font-mono); font-size: 0.6rem; color: var(--eco); letter-spacing: 0.15em;">湿地</div>
+        <div class="gradient-bar-wrapper" style="height: 380px; flex-direction: column;">
+          <div class="gradient-bar" style="background: #2d6b4a;" data-zone="eco-1">
+            <span class="gradient-bar-label" style="top: 50%; transform: translate(-50%, -50%);">表层</span>
+          </div>
+          <div class="gradient-bar" style="background: #4a5a3a;" data-zone="eco-2">
+            <span class="gradient-bar-label" style="top: 50%; transform: translate(-50%, -50%);">中层</span>
+          </div>
+          <div class="gradient-bar" style="background: #3a3a2a;" data-zone="eco-3">
+            <span class="gradient-bar-label" style="top: 50%; transform: translate(-50%, -50%);">底层</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info cards -->
+      <div class="gradient-info">
+        <div class="gradient-card active" id="card-eco-1">
+          <span class="gradient-card-tag eco-tag">DO &gt; 2 mg/L</span>
+          <div class="gradient-card-title">好氧表层 — 硝化反应</div>
+          <p class="gradient-card-desc">溶解氧充足，硝化细菌（Nitrosomonas、Nitrobacter）将 NH₄⁺ 依次氧化为 NO₂⁻ → NO₃⁻。</p>
+        </div>
+        <div class="gradient-card" id="card-eco-2">
+          <span class="gradient-card-tag eco-tag">DO 0.5–2 mg/L</span>
+          <div class="gradient-card-title">过渡中层 — 厌氧氨氧化</div>
+          <p class="gradient-card-desc">溶解氧梯度陡降，厌氧氨氧化菌开始活跃。部分 NO₃⁻ 和 NH₄⁺ 在此直接转化为 N₂。</p>
+        </div>
+        <div class="gradient-card" id="card-eco-3">
+          <span class="gradient-card-tag eco-tag">DO &lt; 0.5 mg/L</span>
+          <div class="gradient-card-title">厌氧底层 — 反硝化反应</div>
+          <p class="gradient-card-desc">严格厌氧，反硝化细菌（Pseudomonas 等）将 NO₃⁻ 还原为 N₂ 释放。有机碳为电子供体。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="water-line"></div>
+
+<!-- ===== STAGE 4: 终控排放 ===== -->
+<section class="section reveal">
+  <div class="stage-num">STAGE 04 — 终调与排放</div>
+  <h2 class="section-title">第四步：最后一道精确阀门</h2>
+  <p class="section-desc">
+    经过层层处理后，系统对最终输出做精细调控，确保排放质量达标。
+  </p>
+  <div class="split-stage">
+    <div class="split-side split-left">
+      <div class="split-icon">🧬</div>
+      <div class="split-title bio">远曲小管与集合管</div>
+      <p class="split-text">
+        醛固酮调控 Na⁺/K⁺ 平衡，ADH 调控水通透性。激素反馈回路在毫秒至分钟级实时调整终尿的离子组成和浓度。
+      </p>
+    </div>
+    <div class="split-side split-right">
+      <div class="split-icon">⚙️</div>
+      <div class="split-title eco">出水调控池</div>
+      <p class="split-text">
+        通过控制水力停留时间（HRT）、出水堰高度，对出水做工程终控。部分湿地增设后置曝气或化学除磷进行深度处理。
+      </p>
+    </div>
+    <div class="stage-bridge">≈</div>
+  </div>
+</section>
+
+<!-- ===== FLOW COMPARISON ===== -->
+<section class="section reveal">
+  <div class="section-label">Process Flow</div>
+  <h2 class="section-title">四步流程，逻辑同构</h2>
+  <div class="flow-section">
+    <div class="flow-node bio-node">肾小球滤过</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node bio-node">近曲小管重吸收</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node bio-node">亨利氏袢逆流倍增</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node bio-node">集合管终调</div>
+  </div>
+  <div style="text-align:center; margin: 0.8rem 0; font-size: 1.5rem; color: var(--accent);">⇌</div>
+  <div class="flow-section">
+    <div class="flow-node eco-node">介质物理截留</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node eco-node">填料吸附交换</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node eco-node">氧化还原梯度转化</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-node eco-node">出水调控</div>
+  </div>
+</section>
+
+<div class="water-line"></div>
+
+<!-- ===== SHARED LOGIC ===== -->
+<section class="section reveal">
+  <div class="section-label">Five Shared Principles</div>
+  <h2 class="section-title">五条共通逻辑</h2>
+  <div class="shared-grid">
+    <div class="shared-card reveal" style="transition-delay: 0s;">
+      <div class="shared-card-num">01</div>
+      <div class="shared-card-title">多级串联</div>
+      <p class="shared-card-desc">每个环节只完成特定任务，串联后实现从粗到精的渐进净化。</p>
+    </div>
+    <div class="shared-card reveal" style="transition-delay: 0.1s;">
+      <div class="shared-card-num">02</div>
+      <div class="shared-card-title">物化生耦合</div>
+      <p class="shared-card-desc">物理过滤、化学吸附/沉淀、生物代谢三者协同，缺一不可。</p>
+    </div>
+    <div class="shared-card reveal" style="transition-delay: 0.2s;">
+      <div class="shared-card-num">03</div>
+      <div class="shared-card-title">梯度驱动</div>
+      <p class="shared-card-desc">渗透压梯度 vs. 氧化还原梯度——不同的场，相同的驱动力逻辑。</p>
+    </div>
+    <div class="shared-card reveal" style="transition-delay: 0.3s;">
+      <div class="shared-card-num">04</div>
+      <div class="shared-card-title">选择性转运</div>
+      <p class="shared-card-desc">膜蛋白对分子的选择性识别 vs. 填料表面对离子的选择性亲和。</p>
+    </div>
+    <div class="shared-card reveal" style="transition-delay: 0.4s;">
+      <div class="shared-card-num">05</div>
+      <div class="shared-card-title">闭环反馈</div>
+      <p class="shared-card-desc">激素回路实时精调 vs. 生态群落缓慢自组织——反馈的尺度不同，逻辑相同。</p>
+    </div>
+  </div>
+</section>
+
+<div class="water-line"></div>
+
+<!-- ===== DIFFERENCES ===== -->
+<section class="section reveal">
+  <div class="section-label">Key Differences</div>
+  <h2 class="section-title">同构，但不等同</h2>
+  <p class="section-desc">
+    相似的逻辑框架，不同的实现尺度。理解差异才能正确应用类比。
+  </p>
+  <table class="diff-table">
+    <thead>
+      <tr>
+        <th style="width:18%;">维度</th>
+        <th style="width:41%;">🩸 泌尿系统</th>
+        <th style="width:41%;">🌿 人工湿地</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="col-dim">调控精度</td>
+        <td class="col-bio">分子级别实时反馈（毫秒级）</td>
+        <td class="col-eco">工程设计 + 生态自组织（小时～天级）</td>
+      </tr>
+      <tr>
+        <td class="col-dim">能量方式</td>
+        <td class="col-bio">主动耗能转运（ATP 驱动）</td>
+        <td class="col-eco">以重力被动过程为主，生物部分为辅</td>
+      </tr>
+      <tr>
+        <td class="col-dim">恢复能力</td>
+        <td class="col-bio">功能单位损伤后受限（纤维化）</td>
+        <td class="col-eco">生态冗余度高，自我修复能力强</td>
+      </tr>
+      <tr>
+        <td class="col-dim">时间尺度</td>
+        <td class="col-bio">秒 ~ 分钟级闭环</td>
+        <td class="col-eco">小时 ~ 天级响应</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===== CONCLUSION ===== -->
+<section class="section reveal">
+  <div class="conclusion">
+    <p class="conclusion-quote">
+      自然用 <strong>4 亿年</strong>演化出的肾单位净化方案，工程师用 <strong>几十年</strong>的湿地设计重新发现了相似的逻辑。<br><br>
+      两者殊途同归，本质上都是——<br>
+      <strong>在梯度场中，用多级串联，实现选择性分离与转化。</strong>
+    </p>
+    <p class="conclusion-source">
+      REFERENCES — Boron & Boulpaep, <em>Medical Physiology</em>, 2009 · Kadlec & Wallace, <em>Treatment Wetlands</em>, CRC Press, 2009 · Vymazal, <em>Sci. Total Environ.</em>, 2007 · Odum, <em>Ecological Engineering</em>, 1989
+    </p>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  梯度之镜 — 肾单位 × 人工湿地 · 净化逻辑的跨域同构
+</footer>
+
+<script>
+// === SCROLL REVEAL ===
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// === GRADIENT INTERACTIVE ===
+const gradientBars = document.querySelectorAll('.gradient-bar');
+const cards = {};
+
+// Build card map
+gradientBars.forEach(bar => {
+  const zone = bar.dataset.zone;
+  cards[zone] = document.getElementById('card-' + zone);
+});
+
+gradientBars.forEach(bar => {
+  bar.addEventListener('click', () => {
+    const zone = bar.dataset.zone;
+    const side = zone.split('-')[0]; // 'kidney' or 'eco'
+
+    // Deactivate all cards on this side
+    Object.keys(cards).forEach(key => {
+      if (key.startsWith(side)) {
+        cards[key].classList.remove('active');
+      }
+    });
+
+    // Activate clicked
+    if (cards[zone]) {
+      cards[zone].classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>
