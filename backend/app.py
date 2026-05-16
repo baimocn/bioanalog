@@ -6,11 +6,12 @@ BioAnalogy — Flask 后端
 
 import os
 import json
+import math
 import requests
 import yaml
 from pathlib import Path
-from typing import List, Dict, Any
-from flask import Flask, request, jsonify
+from typing import List, Dict
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -42,6 +43,14 @@ class SciAgentSkillIndexer:
         self.registry_path = self.base_dir / "registry.yaml"
         self.registry = self._load_registry()
         self.skills = self._build_index()
+        # BM25 参数与文档统计
+        self._k1 = 1.5
+        self._b = 0.75
+        self._doc_texts = []
+        self._doc_len = []
+        self._avgdl = 0.0
+        self._df = {}  # term -> 出现该 term 的文档数
+        self._build_bm25_stats()
 
     def _load_registry(self) -> Dict:
         """加载 registry.yaml 注册表"""
@@ -74,6 +83,18 @@ class SciAgentSkillIndexer:
             })
         print(f"[SciAgent] 已加载 {len(index)} 个技能")
         return index
+
+    def _build_bm25_stats(self):
+        """预计算 BM25 所需的文档统计信息"""
+        for skill in self.skills:
+            text = (skill["name"] + " " + skill["description"] + " " + skill["category"]).lower()
+            tokens = list(self._tokenize(text))
+            self._doc_texts.append(tokens)
+            self._doc_len.append(len(tokens))
+            for t in set(tokens):
+                self._df[t] = self._df.get(t, 0) + 1
+        total_len = sum(self._doc_len)
+        self._avgdl = total_len / len(self._doc_texts) if self._doc_texts else 1.0
 
     # 中英文同义词映射：中文关键词 → 英文关键词
     _SYNONYMS = {
@@ -120,18 +141,35 @@ class SciAgentSkillIndexer:
                     expanded.add(en)
         return expanded
 
-    def retrieve_relevant_skills(self, query: str, top_k: int = 3) -> List[Dict]:
-        """基于关键词匹配检索最相关的技能（支持中英文）"""
+    def _bm25_score(self, query_tokens: set, doc_idx: int) -> float:
+        """计算单个文档的 BM25 分数"""
+        doc = self._doc_texts[doc_idx]
+        dl = self._doc_len[doc_idx]
+        n = len(self._doc_texts)
+        score = 0.0
+        # 统计 term 在文档中的出现次数
+        tf_map = {}
+        for t in doc:
+            if t in query_tokens:
+                tf_map[t] = tf_map.get(t, 0) + 1
+        for term, tf in tf_map.items():
+            df = self._df.get(term, 0)
+            idf = math.log((n - df + 0.5) / (df + 0.5) + 1.0)
+            tf_norm = (tf * (self._k1 + 1)) / (tf + self._k1 * (1 - self._b + self._b * dl / self._avgdl))
+            score += idf * tf_norm
+        return score
+
+    def retrieve_relevant_skills(self, query: str, top_k: int = 1) -> List[Dict]:
+        """基于 BM25 排序检索最相关的技能（支持中英文）"""
         keywords = self._tokenize(query)
         if not keywords:
             return []
 
         scored = []
-        for skill in self.skills:
-            text = (skill["name"] + " " + skill["description"] + " " + skill["category"]).lower()
-            score = sum(1 for kw in keywords if kw in text)
+        for i in range(len(self.skills)):
+            score = self._bm25_score(keywords, i)
             if score > 0:
-                scored.append((score, skill))
+                scored.append((score, self.skills[i]))
         scored.sort(key=lambda x: x[0], reverse=True)
         return [s[1] for s in scored[:top_k]]
 
@@ -154,15 +192,57 @@ skill_indexer = SciAgentSkillIndexer()
 
 def load_persona() -> Dict:
     """读取人格设定文件"""
-    with open(PERSONA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(PERSONA_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"[WARNING] persona.json 加载失败: {e}")
+        return {"system_prompt": "你是一个学术研究助手，请用中文回答问题。"}
 
 
-def build_messages(persona: Dict, user_message: str, context: Dict, skill_context: str = "") -> List[Dict]:
-    """构建发送给 API 的 messages 数组，注入技能上下文"""
+# ---- 路由 ----
+
+MAX_HISTORY = 20  # 最多保留的历史消息条数
+
+
+def _parse_chat_request(body):
+    """解析聊天请求，返回 (user_message, history, context) 或错误响应"""
+    context = body.get("context", {})
+    history = body.get("messages")
+
+    if history and isinstance(history, list):
+        user_message = ""
+        for msg in reversed(history):
+            if msg.get("role") == "user":
+                user_message = msg.get("content", "")
+                break
+        history = [m for m in history if m.get("role") in ("user", "assistant")]
+        history = history[-MAX_HISTORY:]
+    else:
+        user_message = body.get("message", "")
+        if not user_message:
+            return None, None, None, (jsonify({
+                "error": True,
+                "reply": "请求格式错误：需要 message 或 messages 字段。"
+            }), 400)
+
+    return user_message, history, context, None
+
+
+def _build_full_messages(user_message, history, context):
+    """构建发送给 MIMO API 的完整 messages 数组，返回 (full_messages, skill_names)"""
+    relevant_skills = skill_indexer.retrieve_relevant_skills(user_message, top_k=1)
+    skill_names = [s["name"] for s in relevant_skills]
+
+    skill_context = ""
+    for skill in relevant_skills:
+        content = skill_indexer.get_skill_content(skill)
+        if content:
+            skill_context += f"\n\n## {skill['name']}\n{content}\n"
+
+    persona = load_persona()
     system_content = persona.get("system_prompt_template", "") or persona.get("system_prompt", "")
 
-    # 注入技能上下文
     if skill_context:
         system_content += (
             "\n\n【专家技能参考】\n"
@@ -170,7 +250,16 @@ def build_messages(persona: Dict, user_message: str, context: Dict, skill_contex
             + skill_context
         )
 
-    # 注入页面上下文
+    # 强制引用格式要求
+    system_content += (
+        "\n\n【引用与准确性要求】\n"
+        "1. 回答中涉及专业知识时，必须在相关段落末尾标注来源，格式为：[来源: 技能名称]\n"
+        "2. 如果引用了专家技能参考中的内容，标注对应的技能名称\n"
+        "3. 如果是基于你的通识知识回答，标注 [来源: 通识知识]\n"
+        "4. 对于不确定的信息，必须明确标注 [待验证]，不要编造数据或文献\n"
+        "5. 涉及具体数值、公式、实验参数时，务必谨慎，宁可说\"不确定\"也不要给出错误数据"
+    )
+
     ctx_parts = []
     if context.get("topic"):
         ctx_parts.append(f"当前话题板块: {context['topic']}")
@@ -179,58 +268,40 @@ def build_messages(persona: Dict, user_message: str, context: Dict, skill_contex
     if ctx_parts:
         system_content += "\n\n[用户上下文]\n" + "\n".join(ctx_parts)
 
-    return [
-        {"role": "system", "content": system_content},
-        {"role": "user", "content": user_message},
-    ]
+    if history:
+        full_messages = [{"role": "system", "content": system_content}] + history
+    else:
+        full_messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_message},
+        ]
 
+    return full_messages, skill_names
 
-# ---- 路由 ----
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    """AI 聊天接口，集成 SciAgent-Skills 动态技能检索"""
-    # 检查 API Key
+    """AI 聊天接口（非流式），支持多轮对话历史"""
     if not MIMO_API_KEY:
-        return jsonify({
-            "error": True,
-            "reply": "AI 服务未配置：环境变量 MIMO_API_KEY 缺失。请设置后重启后端。"
-        }), 503
+        return jsonify({"error": True, "reply": "AI 服务未配置：环境变量 MIMO_API_KEY 缺失。"}), 503
 
-    # 解析请求
     body = request.get_json(silent=True)
-    if not body or not body.get("message"):
-        return jsonify({
-            "error": True,
-            "reply": "请求格式错误：需要 JSON body 且包含 message 字段。"
-        }), 400
+    if not body:
+        return jsonify({"error": True, "reply": "请求格式错误：需要 JSON body。"}), 400
 
-    user_message = body["message"]
-    context = body.get("context", {})
+    user_message, history, context, err = _parse_chat_request(body)
+    if err:
+        return err
 
-    # ---- 技能检索 ----
-    relevant_skills = skill_indexer.retrieve_relevant_skills(user_message, top_k=2)
-    skill_context = ""
-    for skill in relevant_skills:
-        content = skill_indexer.get_skill_content(skill)
-        if content:
-            skill_context += f"\n\n## {skill['name']}\n{content}\n"
+    full_messages, _ = _build_full_messages(user_message, history, context)
 
-    # 加载人格并构建消息
-    persona = load_persona()
-    messages = build_messages(persona, user_message, context, skill_context)
-
-    # 调用 MIMO API
     try:
         resp = requests.post(
             MIMO_API_URL,
-            headers={
-                "api-key": MIMO_API_KEY,
-                "Content-Type": "application/json",
-            },
+            headers={"api-key": MIMO_API_KEY, "Content-Type": "application/json"},
             json={
                 "model": MIMO_MODEL,
-                "messages": messages,
+                "messages": full_messages,
                 "max_completion_tokens": 2048,
                 "temperature": 1.0,
                 "top_p": 0.95,
@@ -244,22 +315,84 @@ def chat():
         return jsonify({"reply": reply})
 
     except requests.exceptions.Timeout:
-        return jsonify({
-            "error": True,
-            "reply": "AI 服务响应超时，请稍后重试。"
-        }), 504
-
+        return jsonify({"error": True, "reply": "AI 服务响应超时，请稍后重试。"}), 504
     except requests.exceptions.RequestException as e:
-        return jsonify({
-            "error": True,
-            "reply": f"AI 服务请求失败: {type(e).__name__}"
-        }), 502
-
+        return jsonify({"error": True, "reply": f"AI 服务请求失败: {type(e).__name__}"}), 502
     except (KeyError, IndexError):
-        return jsonify({
-            "error": True,
-            "reply": "AI 返回数据格式异常，请稍后重试。"
-        }), 502
+        return jsonify({"error": True, "reply": "AI 返回数据格式异常，请稍后重试。"}), 502
+
+
+@app.route("/api/chat/stream", methods=["POST"])
+def chat_stream():
+    """AI 聊天接口（流式 SSE），支持多轮对话历史"""
+    if not MIMO_API_KEY:
+        return jsonify({"error": True, "reply": "AI 服务未配置。"}), 503
+
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": True, "reply": "请求格式错误。"}), 400
+
+    user_message, history, context, err = _parse_chat_request(body)
+    if err:
+        return err
+
+    full_messages, skill_names = _build_full_messages(user_message, history, context)
+
+    def generate():
+        try:
+            resp = requests.post(
+                MIMO_API_URL,
+                headers={"api-key": MIMO_API_KEY, "Content-Type": "application/json"},
+                json={
+                    "model": MIMO_MODEL,
+                    "messages": full_messages,
+                    "max_completion_tokens": 2048,
+                    "temperature": 1.0,
+                    "top_p": 0.95,
+                    "stream": True,
+                },
+                timeout=120,
+                stream=True,
+            )
+            resp.raise_for_status()
+
+            # 发送技能引用元数据
+            if skill_names:
+                yield f"event: skill_info\ndata: {json.dumps({'skills': skill_names})}\n\n"
+
+            # 流式转发 token
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                line = line.decode("utf-8", errors="replace")
+                if not line.startswith("data:"):
+                    continue
+                data_str = line[5:].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    chunk = json.loads(data_str)
+                    delta = chunk.get("choices", [{}])[0].get("delta", {})
+                    token = delta.get("content", "")
+                    if token:
+                        yield f"data: {json.dumps({'token': token})}\n\n"
+                except (json.JSONDecodeError, IndexError, KeyError):
+                    continue
+
+            yield "data: [DONE]\n\n"
+
+        except requests.exceptions.Timeout:
+            yield f"data: {json.dumps({'error': 'AI 服务响应超时。'})}\n\n"
+            yield "data: [DONE]\n\n"
+        except requests.exceptions.RequestException as e:
+            yield f"data: {json.dumps({'error': f'AI 服务请求失败: {type(e).__name__}'})}\n\n"
+            yield "data: [DONE]\n\n"
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.route("/api/health", methods=["GET"])

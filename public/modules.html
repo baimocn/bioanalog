@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>模块选择 — BioAnalogy</title>
+<title>消化-土壤固碳 · 核心研究 + AI 助手 — BioAnalogy</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -88,15 +88,21 @@ body::after{
 }
 
 /* ============================================================
-   卡片网格 — 2x2 居中布局
+   卡片网格
    ============================================================ */
 .cards{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:1fr 1fr;
   gap:20px;
   width:100%;max-width:720px;
   padding-bottom:clamp(36px,5vw,56px);
 }
+.card--hero{grid-column:1/-1}
+.cards--center{
+  grid-template-columns:1fr;
+  justify-items:center;
+}
+.cards--center .card{width:100%}
 
 /* ============================================================
    卡片 — <a> 标签直接作为卡片元素
@@ -237,6 +243,7 @@ footer .year{
 /* ---- 响应式 ---- */
 @media(max-width:600px){
   .cards{grid-template-columns:1fr;max-width:380px}
+  .card--hero{grid-column:1}
   .card-body{padding:22px 20px}
 }
 </style>
@@ -256,54 +263,36 @@ footer .year{
 
 <div class="main">
   <header class="page-hero">
-    <h1>选择一个模块开始探索</h1>
-    <p>从消化、泌尿到呼吸——人体器官系统与地球生态系统之间，存在着结构性相似。点击卡片深入每一个类比。</p>
+    <h1>消化-土壤固碳 · 核心研究 + AI 助手</h1>
+    <p>肠道酶解与土壤碳分解的底层同构——从酶级联到微生物碳泵，探索有机碳降解与固存的跨尺度共性逻辑。AI 学术助手「默存」为您提供专业解答。</p>
   </header>
 
-  <!-- 四个模块卡片，2x2 网格
-       修复：每个卡片直接用 <a> 标签，无外层 div，确保整个区域可点击 -->
+  <!-- 核心模块卡片 -->
   <div class="cards">
 
-    <a href="q1.html" class="card c1" title="消化系统与土壤固碳的类比">
+    <a href="q1.html" class="card c1 card--hero" title="消化系统与土壤固碳的类比">
       <div class="card-body">
         <div class="glow"></div>
         <div class="icon">🌱</div>
         <h2>消化 ⇄ 土壤固碳</h2>
-        <p>肠道酶解与土壤微生物分解有机碳的底层同构——从酶动力学到三步碳模型。</p>
+        <p>肠道酶解（含胆汁乳化）与土壤分解有机碳的同构——糖类/纤维素先分解，木质素最后；pH/温度/水分共调酶活性。五层嵌套结构、碳原子旅程追踪、关键参数定量对照。</p>
         <span class="arrow">进入模块 →</span>
       </div>
     </a>
 
-    <a href="q2.html" class="card c2" title="泌尿系统与人工湿地的类比">
-      <div class="card-body">
-        <div class="glow"></div>
-        <div class="icon">💧</div>
-        <h2>泌尿 ⇄ 人工湿地</h2>
-        <p>肾单位的选择性重吸收与湿地基质的梯度净化——精密调控与生态冗余的殊途同归。</p>
-        <span class="arrow">进入模块 →</span>
-      </div>
-    </a>
+  </div>
 
-    <a href="q3.html" class="card c3" title="呼吸系统与大气碳平衡的类比">
-      <div class="card-body">
-        <div class="glow"></div>
-        <div class="icon">🫁</div>
-        <h2>呼吸 ⇄ 大气碳平衡</h2>
-        <p>肺泡、气孔、全球碳收支——Fick 扩散定律在三个尺度上的结构映射。</p>
-        <span class="arrow">进入模块 →</span>
-      </div>
-    </a>
-
+  <!-- AI 助手卡片 — 独立居中 -->
+  <div class="cards cards--center">
     <a href="ai_intro.html" class="card c4" title="与 AI 研究员默存对话">
       <div class="card-body">
         <div class="glow"></div>
         <div class="icon">🧬</div>
-        <h2>AI 研究员</h2>
-        <p>与默存对话，获取基因组学、结构生物学、科学计算等领域的专业解答与方法建议。</p>
+        <h2>AI 学术助手 · 默存</h2>
+        <p>计算生物学与系统组学研究助手，基于 MIMO 大模型，支持消化-土壤碳循环领域的专业问答与知识检索。</p>
         <span class="arrow">开始对话 →</span>
       </div>
     </a>
-
   </div>
 </div>
 

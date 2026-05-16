@@ -412,6 +412,141 @@
       <div class="parallel-card-label">土壤生态系统</div>
       <h3>木质素 → 纤维素 → 单糖</h3>
       <p>凋落物被胞外酶逐步拆解：纤维素酶、木质素过氧化物酶、几丁质酶分别负责不同底物，构成完整的降解链条。</p>
+      <svg viewBox="0 0 600 170" width="100%" style="display:block;margin:0.8rem auto 0;" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          /* Molecule cluster: large aggregate that drifts right and fragments */
+          @keyframes mol-drift {
+            0% { transform: translate(0,0) scale(1); opacity: 0.9; }
+            30% { transform: translate(60px, -4px) scale(0.85); opacity: 0.85; }
+            60% { transform: translate(130px, 2px) scale(0.6); opacity: 0.7; }
+            100% { transform: translate(200px, 0) scale(0.35); opacity: 0.5; }
+          }
+          /* Fragment: small piece that breaks off and drifts away */
+          @keyframes frag-break {
+            0% { transform: translate(0,0) scale(0.5); opacity: 0; }
+            15% { opacity: 0.8; }
+            50% { transform: translate(30px, -15px) scale(0.8); opacity: 0.7; }
+            100% { transform: translate(60px, -8px) scale(0.4); opacity: 0; }
+          }
+          /* Enzyme particle: attacks and splits */
+          @keyframes enzyme-attack {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 0.9; }
+            50% { transform: translateY(-20px) scale(1.3); opacity: 1; }
+            70% { transform: translateY(-10px) scale(0.8); opacity: 0.6; }
+            100% { transform: translateY(5px) scale(0.3); opacity: 0; }
+          }
+          @keyframes pulse-box { 0%,100%{stroke-opacity:0.3} 50%{stroke-opacity:0.7} }
+          @keyframes dash-flow { to { stroke-dashoffset: -20; } }
+          @keyframes glow-pulse { 0%,100%{opacity:0.1} 50%{opacity:0.3} }
+          .mol1 { animation: mol-drift 5s ease-in-out infinite; }
+          .mol2 { animation: mol-drift 5s ease-in-out infinite 1.5s; }
+          .frag1 { animation: frag-break 3s ease-in-out infinite 0.5s; }
+          .frag2 { animation: frag-break 3s ease-in-out infinite 1.2s; }
+          .frag3 { animation: frag-break 3s ease-in-out infinite 2s; }
+          .frag4 { animation: frag-break 3s ease-in-out infinite 2.8s; }
+          .enz1 { animation: enzyme-attack 2.5s ease-in-out infinite 0.3s; }
+          .enz2 { animation: enzyme-attack 2.5s ease-in-out infinite 1.3s; }
+          .enz3 { animation: enzyme-attack 2.5s ease-in-out infinite 2.3s; }
+          .box-pulse { animation: pulse-box 3s ease-in-out infinite; }
+          .dash-flow { stroke-dasharray: 6 4; animation: dash-flow 1.5s linear infinite; }
+          .glow { animation: glow-pulse 3s ease-in-out infinite; }
+        </style>
+        <defs>
+          <marker id="arr1" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8" fill="#ffb7b2" opacity="0.8"/></marker>
+          <linearGradient id="box1a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8a7060" stop-opacity="0.35"/><stop offset="100%" stop-color="#8a7060" stop-opacity="0.08"/></linearGradient>
+          <linearGradient id="box1b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c49a6c" stop-opacity="0.35"/><stop offset="100%" stop-color="#c49a6c" stop-opacity="0.08"/></linearGradient>
+          <linearGradient id="box1c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffb7b2" stop-opacity="0.35"/><stop offset="100%" stop-color="#ffb7b2" stop-opacity="0.08"/></linearGradient>
+          <filter id="glow1"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Glow backgrounds -->
+        <ellipse cx="100" cy="60" rx="75" ry="40" fill="#8a7060" opacity="0.06" class="glow"/>
+        <ellipse cx="300" cy="60" rx="75" ry="40" fill="#c49a6c" opacity="0.06" class="glow" style="animation-delay:1s"/>
+        <ellipse cx="500" cy="60" rx="75" ry="40" fill="#ffb7b2" opacity="0.06" class="glow" style="animation-delay:2s"/>
+        <!-- Boxes -->
+        <rect x="30" y="22" width="140" height="72" rx="8" fill="url(#box1a)" stroke="#8a7060" stroke-width="1.2" class="box-pulse"/>
+        <rect x="230" y="22" width="140" height="72" rx="8" fill="url(#box1b)" stroke="#c49a6c" stroke-width="1.2" class="box-pulse" style="animation-delay:1s"/>
+        <rect x="430" y="22" width="140" height="72" rx="8" fill="url(#box1c)" stroke="#ffb7b2" stroke-width="1.2" class="box-pulse" style="animation-delay:2s"/>
+        <!-- Box labels -->
+        <text x="100" y="52" text-anchor="middle" fill="#f0ece4" font-size="20" font-family="'Noto Serif SC',serif" font-weight="600">木质素</text>
+        <text x="100" y="76" text-anchor="middle" fill="#8a7060" font-size="12" font-family="'DM Mono',monospace">高分子聚合物</text>
+        <text x="300" y="52" text-anchor="middle" fill="#f0ece4" font-size="20" font-family="'Noto Serif SC',serif" font-weight="600">纤维素</text>
+        <text x="300" y="76" text-anchor="middle" fill="#c49a6c" font-size="12" font-family="'DM Mono',monospace">酶切 → 寡糖</text>
+        <text x="500" y="52" text-anchor="middle" fill="#f0ece4" font-size="20" font-family="'Noto Serif SC',serif" font-weight="600">单糖</text>
+        <text x="500" y="76" text-anchor="middle" fill="#ffb7b2" font-size="12" font-family="'DM Mono',monospace">水解 → 可吸收</text>
+        <!-- Dashed arrow paths -->
+        <line x1="174" y1="58" x2="226" y2="58" stroke="#ffb7b2" stroke-width="1.5" marker-end="url(#arr1)" class="dash-flow" stroke-opacity="0.6"/>
+        <line x1="374" y1="58" x2="426" y2="58" stroke="#ffb7b2" stroke-width="1.5" marker-end="url(#arr1)" class="dash-flow" stroke-opacity="0.6" style="animation-delay:0.3s"/>
+        <!-- MOLECULE CLUSTERS: large aggregates drifting right and fragmenting -->
+        <!-- Box1 zone: large molecule cluster (6 circles bound together) -->
+        <g class="mol1">
+          <circle cx="80" cy="55" r="5" fill="#8a7060" opacity="0.7"/>
+          <circle cx="90" cy="48" r="4" fill="#8a7060" opacity="0.6"/>
+          <circle cx="92" cy="58" r="4.5" fill="#8a7060" opacity="0.65"/>
+          <circle cx="75" cy="62" r="3.5" fill="#8a7060" opacity="0.55"/>
+          <circle cx="85" cy="42" r="3" fill="#8a7060" opacity="0.5"/>
+          <circle cx="95" cy="65" r="3.5" fill="#8a7060" opacity="0.5"/>
+          <line x1="80" y1="55" x2="90" y2="48" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+          <line x1="80" y1="55" x2="92" y2="58" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+          <line x1="80" y1="55" x2="75" y2="62" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+          <line x1="90" y1="48" x2="85" y2="42" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+          <line x1="92" y1="58" x2="95" y2="65" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+        </g>
+        <g class="mol2" style="animation-delay:2.5s">
+          <circle cx="115" cy="50" r="4" fill="#8a7060" opacity="0.6"/>
+          <circle cx="122" cy="44" r="3.5" fill="#8a7060" opacity="0.55"/>
+          <circle cx="120" cy="56" r="4" fill="#8a7060" opacity="0.6"/>
+          <circle cx="110" cy="58" r="3" fill="#8a7060" opacity="0.5"/>
+          <line x1="115" y1="50" x2="122" y2="44" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+          <line x1="115" y1="50" x2="120" y2="56" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+          <line x1="115" y1="50" x2="110" y2="58" stroke="#8a7060" stroke-width="0.8" opacity="0.3"/>
+        </g>
+        <!-- ENZYME ATTACK: scissors-like particles at transition zones -->
+        <g class="enz1">
+          <circle cx="195" cy="50" r="4" fill="#ffb7b2" opacity="0.8"/>
+          <circle cx="205" cy="62" r="3" fill="#ffb7b2" opacity="0.6"/>
+          <line x1="195" y1="50" x2="205" y2="62" stroke="#ffb7b2" stroke-width="1.5" opacity="0.5" stroke-dasharray="3 2"/>
+        </g>
+        <g class="enz2" style="animation-delay:1s">
+          <circle cx="200" cy="42" r="3.5" fill="#ffb7b2" opacity="0.7"/>
+          <circle cx="190" cy="65" r="2.5" fill="#ffb7b2" opacity="0.5"/>
+        </g>
+        <g class="enz3">
+          <circle cx="395" cy="50" r="4" fill="#ffb7b2" opacity="0.8"/>
+          <circle cx="405" cy="62" r="3" fill="#ffb7b2" opacity="0.6"/>
+          <line x1="395" y1="50" x2="405" y2="62" stroke="#ffb7b2" stroke-width="1.5" opacity="0.5" stroke-dasharray="3 2"/>
+        </g>
+        <!-- FRAGMENTS: small pieces breaking off from molecules -->
+        <circle cx="180" cy="45" r="2" fill="#c49a6c" class="frag1"/>
+        <circle cx="188" cy="60" r="1.5" fill="#c49a6c" class="frag2"/>
+        <circle cx="195" cy="38" r="1.8" fill="#c49a6c" class="frag3"/>
+        <circle cx="175" cy="55" r="1.5" fill="#c49a6c" class="frag4"/>
+        <circle cx="380" cy="45" r="2" fill="#ffb7b2" class="frag1" style="animation-delay:0.8s"/>
+        <circle cx="388" cy="60" r="1.5" fill="#ffb7b2" class="frag2" style="animation-delay:1.5s"/>
+        <circle cx="395" cy="38" r="1.8" fill="#ffb7b2" class="frag3" style="animation-delay:2.2s"/>
+        <circle cx="375" cy="55" r="1.5" fill="#ffb7b2" class="frag4" style="animation-delay:3s"/>
+        <!-- Box2 zone: medium fragments (oligosaccharides) -->
+        <circle cx="270" cy="48" r="3" fill="#c49a6c" opacity="0.6"/>
+        <circle cx="280" cy="58" r="2.5" fill="#c49a6c" opacity="0.55"/>
+        <circle cx="290" cy="45" r="2" fill="#c49a6c" opacity="0.5"/>
+        <circle cx="310" cy="55" r="2.5" fill="#c49a6c" opacity="0.5"/>
+        <circle cx="320" cy="48" r="2" fill="#c49a6c" opacity="0.45"/>
+        <!-- Box3 zone: small single molecules (monosaccharides) -->
+        <circle cx="470" cy="48" r="2" fill="#ffb7b2" opacity="0.7"/>
+        <circle cx="485" cy="55" r="1.8" fill="#ffb7b2" opacity="0.65"/>
+        <circle cx="500" cy="45" r="1.5" fill="#ffb7b2" opacity="0.6"/>
+        <circle cx="515" cy="58" r="2" fill="#ffb7b2" opacity="0.55"/>
+        <circle cx="530" cy="50" r="1.8" fill="#ffb7b2" opacity="0.5"/>
+        <circle cx="460" cy="60" r="1.5" fill="#ffb7b2" opacity="0.5"/>
+        <circle cx="510" cy="42" r="1.5" fill="#ffb7b2" opacity="0.45"/>
+        <!-- Annotation -->
+        <text x="300" y="120" text-anchor="middle" fill="#aaa" font-size="14" font-family="'DM Mono',monospace">化学惰性递减 · 酶解难度递减</text>
+        <!-- Gradient bar -->
+        <rect x="100" y="130" width="400" height="4" rx="2" fill="url(#bar1grad)" opacity="0.6"/>
+        <defs><linearGradient id="bar1grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8a7060"/><stop offset="50%" stop-color="#c49a6c"/><stop offset="100%" stop-color="#ffb7b2"/></linearGradient></defs>
+        <text x="100" y="150" fill="#8a7060" font-size="10" font-family="'DM Mono',monospace" opacity="0.5">高惰性 · 大分子</text>
+        <text x="500" y="150" text-anchor="end" fill="#ffb7b2" font-size="10" font-family="'DM Mono',monospace" opacity="0.5">易降解 · 单体</text>
+      </svg>
     </div>
   </div>
   <div class="parallel">
@@ -438,6 +573,116 @@
       <div class="parallel-card-label">土壤生态系统</div>
       <h3>凋落物输入维持群落活性</h3>
       <p>持续接受植被凋落物输入，维持微生物群落代谢活性和土壤团聚体结构。有机质输入停止则生物活性退化，结构瓦解。</p>
+      <svg viewBox="0 0 600 210" width="100%" style="display:block;margin:0.8rem auto 0;" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          /* Nutrient flow: particles traveling along the circular path */
+          @keyframes flow-top {
+            0% { transform: translate(0,0); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% { transform: translate(100px, 30px); opacity: 0; }
+          }
+          @keyframes flow-right {
+            0% { transform: translate(0,0); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% { transform: translate(-55px, 25px); opacity: 0; }
+          }
+          @keyframes flow-left {
+            0% { transform: translate(0,0); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% { transform: translate(-45px, -55px); opacity: 0; }
+          }
+          /* Microbe division: particle splits into two */
+          @keyframes microbe-divide {
+            0% { transform: scale(1); opacity: 0.8; }
+            40% { transform: scale(1.4); opacity: 1; }
+            60% { transform: scale(1.4); opacity: 1; }
+            80% { transform: scale(0.8); opacity: 0.6; }
+            100% { transform: scale(0.5); opacity: 0; }
+          }
+          /* Aggregate formation: particles settle and bond */
+          @keyframes aggregate-settle {
+            0% { transform: translateY(-15px) scale(0.6); opacity: 0; }
+            30% { opacity: 0.8; }
+            70% { transform: translateY(0) scale(1); opacity: 0.9; }
+            100% { transform: translateY(3px) scale(1.1); opacity: 0.7; }
+          }
+          @keyframes pulse-node { 0%,100%{stroke-opacity:0.3} 50%{stroke-opacity:0.7} }
+          @keyframes glow-breathe { 0%,100%{opacity:0.06} 50%{opacity:0.18} }
+          @keyframes dash-orbit { to { stroke-dashoffset: -30; } }
+          .node-pulse { animation: pulse-node 3s ease-in-out infinite; }
+          .node-pulse2 { animation: pulse-node 3s ease-in-out infinite 1s; }
+          .node-pulse3 { animation: pulse-node 3s ease-in-out infinite 2s; }
+          .flow1 { animation: flow-top 3.5s ease-in-out infinite; }
+          .flow2 { animation: flow-top 3.5s ease-in-out infinite 0.7s; }
+          .flow3 { animation: flow-top 3.5s ease-in-out infinite 1.4s; }
+          .flow4 { animation: flow-right 3.5s ease-in-out infinite 0.3s; }
+          .flow5 { animation: flow-right 3.5s ease-in-out infinite 1.1s; }
+          .flow6 { animation: flow-left 3.5s ease-in-out infinite 0.5s; }
+          .flow7 { animation: flow-left 3.5s ease-in-out infinite 1.5s; }
+          .microbe1 { animation: microbe-divide 4s ease-in-out infinite; }
+          .microbe2 { animation: microbe-divide 4s ease-in-out infinite 1.3s; }
+          .microbe3 { animation: microbe-divide 4s ease-in-out infinite 2.6s; }
+          .agg1 { animation: aggregate-settle 3.5s ease-in-out infinite 0.4s; }
+          .agg2 { animation: aggregate-settle 3.5s ease-in-out infinite 1.4s; }
+          .agg3 { animation: aggregate-settle 3.5s ease-in-out infinite 2.4s; }
+          .center-glow { animation: glow-breathe 3s ease-in-out infinite; }
+          .dash-orbit { stroke-dasharray: 10 8; animation: dash-orbit 2s linear infinite; }
+        </style>
+        <defs>
+          <marker id="arr2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8" fill="#ffb7b2" opacity="0.8"/></marker>
+          <radialGradient id="glow2"><stop offset="0%" stop-color="#ffb7b2" stop-opacity="0.2"/><stop offset="100%" stop-color="#ffb7b2" stop-opacity="0"/></radialGradient>
+          <filter id="node-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Center glow -->
+        <circle cx="300" cy="95" r="75" fill="url(#glow2)" class="center-glow"/>
+        <!-- Orbit ring (wide, faint) -->
+        <circle cx="300" cy="95" r="60" fill="none" stroke="#ffb7b2" stroke-opacity="0.06" stroke-width="20"/>
+        <!-- Animated orbit ring -->
+        <circle cx="300" cy="95" r="60" fill="none" stroke="#ffb7b2" stroke-opacity="0.12" stroke-width="1.5" class="dash-orbit"/>
+        <!-- Curved arrows -->
+        <path d="M 240,50 A 60,60 0 0,1 360,50" fill="none" stroke="#ffb7b2" stroke-width="2" stroke-opacity="0.45" marker-end="url(#arr2)"/>
+        <path d="M 365,120 A 60,60 0 0,1 235,120" fill="none" stroke="#ffb7b2" stroke-width="2" stroke-opacity="0.45" marker-end="url(#arr2)"/>
+        <path d="M 230,90 A 60,60 0 0,1 255,55" fill="none" stroke="#ffb7b2" stroke-width="2" stroke-opacity="0.45" marker-end="url(#arr2)"/>
+        <!-- Node circles with glow -->
+        <circle cx="300" cy="35" r="20" fill="#18181f" stroke="#8a7060" stroke-width="1.5" class="node-pulse" filter="url(#node-glow)"/>
+        <circle cx="365" cy="120" r="20" fill="#18181f" stroke="#c49a6c" stroke-width="1.5" class="node-pulse2" filter="url(#node-glow)"/>
+        <circle cx="235" cy="120" r="20" fill="#18181f" stroke="#6a9e6a" stroke-width="1.5" class="node-pulse3" filter="url(#node-glow)"/>
+        <!-- Node labels -->
+        <text x="300" y="40" text-anchor="middle" fill="#f0ece4" font-size="15" font-family="'Noto Serif SC',serif" font-weight="600">凋落物</text>
+        <text x="365" y="125" text-anchor="middle" fill="#f0ece4" font-size="15" font-family="'Noto Serif SC',serif" font-weight="600">微生物</text>
+        <text x="235" y="125" text-anchor="middle" fill="#f0ece4" font-size="15" font-family="'Noto Serif SC',serif" font-weight="600">团聚体</text>
+        <!-- Edge labels -->
+        <text x="330" y="40" text-anchor="start" fill="#aaa" font-size="12" font-family="'DM Mono',monospace" opacity="0.6">分解</text>
+        <text x="380" y="85" text-anchor="start" fill="#aaa" font-size="12" font-family="'DM Mono',monospace" opacity="0.6">同化</text>
+        <text x="220" y="85" text-anchor="end" fill="#aaa" font-size="12" font-family="'DM Mono',monospace" opacity="0.6">保护</text>
+        <!-- Center text -->
+        <text x="300" y="90" text-anchor="middle" fill="#ffb7b2" font-size="13" font-family="'DM Mono',monospace" opacity="0.7">输入 → 活性 ↑</text>
+        <text x="300" y="106" text-anchor="middle" fill="#ffb7b2" font-size="13" font-family="'DM Mono',monospace" opacity="0.7">→ 结构稳定</text>
+        <!-- NUTRIENT FLOW PARTICLES: traveling along the cycle path -->
+        <circle cx="260" cy="42" r="3" fill="#8a7060" class="flow1"/>
+        <circle cx="280" cy="38" r="2.5" fill="#8a7060" class="flow2"/>
+        <circle cx="250" cy="48" r="2" fill="#c49a6c" class="flow3"/>
+        <circle cx="370" cy="80" r="3" fill="#c49a6c" class="flow4"/>
+        <circle cx="375" cy="100" r="2.5" fill="#c49a6c" class="flow5"/>
+        <circle cx="240" cy="100" r="3" fill="#6a9e6a" class="flow6"/>
+        <circle cx="245" cy="80" r="2.5" fill="#6a9e6a" class="flow7"/>
+        <!-- MICROBE DIVISION: particles near the microbe node that split -->
+        <circle cx="355" cy="115" r="3" fill="#c49a6c" class="microbe1"/>
+        <circle cx="375" cy="115" r="2.5" fill="#c49a6c" class="microbe2"/>
+        <circle cx="365" cy="128" r="2" fill="#c49a6c" class="microbe3"/>
+        <!-- AGGREGATE FORMATION: particles settling into the aggregate node -->
+        <circle cx="228" cy="115" r="2.5" fill="#6a9e6a" class="agg1"/>
+        <circle cx="242" cy="112" r="3" fill="#6a9e6a" class="agg2"/>
+        <circle cx="232" cy="128" r="2" fill="#6a9e6a" class="agg3"/>
+        <!-- Small bond lines in aggregate node -->
+        <line x1="230" y1="118" x2="240" y2="115" stroke="#6a9e6a" stroke-width="0.8" opacity="0.3"/>
+        <line x1="235" y1="125" x2="242" y2="118" stroke="#6a9e6a" stroke-width="0.8" opacity="0.3"/>
+        <!-- Bottom label -->
+        <text x="300" y="175" text-anchor="middle" fill="#ffb7b2" font-size="15" font-family="'DM Mono',monospace" opacity="0.55">稳态维持正反馈</text>
+      </svg>
     </div>
   </div>
   <div class="parallel">
@@ -464,6 +709,118 @@
       <div class="parallel-card-label">土壤生态系统</div>
       <h3>新鲜凋落物 → 木质素 → 黑碳</h3>
       <p>易分解碳快速矿化，难降解碳（木质素、黑碳）则被转化为长期固存的碳库。每一步都依赖更特异的催化机制。</p>
+      <svg viewBox="0 0 600 210" width="100%" style="display:block;margin:0.8rem auto 0;" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          /* CO2 escape: particles rising upward from the top of bars */
+          @keyframes co2-rise {
+            0% { transform: translate(0,0) scale(1); opacity: 0.9; }
+            30% { opacity: 0.8; }
+            70% { opacity: 0.5; }
+            100% { transform: translate(var(--dx,5px), -35px) scale(0.3); opacity: 0; }
+          }
+          /* Carbon settle: particles sinking into the bar and staying */
+          @keyframes carbon-settle {
+            0% { transform: translateY(-12px) scale(0.5); opacity: 0; }
+            30% { opacity: 0.9; }
+            60% { transform: translateY(5px) scale(1.1); opacity: 0.8; }
+            100% { transform: translateY(8px) scale(1); opacity: 0.6; }
+          }
+          /* Mineralization arrow pulse */
+          @keyframes arrow-pulse { 0%,100%{stroke-opacity:0.3} 50%{stroke-opacity:0.8} }
+          @keyframes bar-glow { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.25)} }
+          /* Bond formation in stable carbon */
+          @keyframes bond-form {
+            0% { stroke-dashoffset: 10; opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { stroke-dashoffset: 0; opacity: 0.3; }
+          }
+          .co2-1 { animation: co2-rise 3s ease-out infinite; --dx: -8px; }
+          .co2-2 { animation: co2-rise 3.5s ease-out infinite 0.6s; --dx: 5px; }
+          .co2-3 { animation: co2-rise 2.8s ease-out infinite 1.2s; --dx: -3px; }
+          .co2-4 { animation: co2-rise 3.2s ease-out infinite 0.3s; --dx: 7px; }
+          .co2-5 { animation: co2-rise 3s ease-out infinite 1.8s; --dx: -6px; }
+          .co2-6 { animation: co2-rise 3.5s ease-out infinite 2.4s; --dx: 4px; }
+          .co2-7 { animation: co2-rise 2.8s ease-out infinite 0.9s; --dx: -5px; }
+          .co2-8 { animation: co2-rise 3.2s ease-out infinite 1.5s; --dx: 6px; }
+          .co2-9 { animation: co2-rise 3s ease-out infinite 2.1s; --dx: -4px; }
+          .cs-1 { animation: carbon-settle 3.5s ease-in-out infinite 0.2s; }
+          .cs-2 { animation: carbon-settle 3.5s ease-in-out infinite 1.2s; }
+          .cs-3 { animation: carbon-settle 3.5s ease-in-out infinite 2.2s; }
+          .cs-4 { animation: carbon-settle 4s ease-in-out infinite 0.7s; }
+          .cs-5 { animation: carbon-settle 4s ease-in-out infinite 1.7s; }
+          .cs-6 { animation: carbon-settle 4s ease-in-out infinite 2.7s; }
+          .arr-pulse { animation: arrow-pulse 2s ease-in-out infinite; }
+          .arr-pulse2 { animation: arrow-pulse 2s ease-in-out infinite 0.5s; }
+          .arr-pulse3 { animation: arrow-pulse 2s ease-in-out infinite 1s; }
+          .bar-glow { animation: bar-glow 4s ease-in-out infinite; }
+          .bar-glow2 { animation: bar-glow 4s ease-in-out infinite 1.3s; }
+          .bar-glow3 { animation: bar-glow 4s ease-in-out infinite 2.6s; }
+          .bond { stroke-dasharray: 4 3; animation: bond-form 3s ease-in-out infinite; }
+          .bond2 { stroke-dasharray: 4 3; animation: bond-form 3s ease-in-out infinite 1s; }
+          .bond3 { stroke-dasharray: 4 3; animation: bond-form 3s ease-in-out infinite 2s; }
+        </style>
+        <defs>
+          <linearGradient id="bar3a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6a9e6a" stop-opacity="0.45"/><stop offset="100%" stop-color="#6a9e6a" stop-opacity="0.1"/></linearGradient>
+          <linearGradient id="bar3b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4a8050" stop-opacity="0.45"/><stop offset="100%" stop-color="#4a8050" stop-opacity="0.1"/></linearGradient>
+          <linearGradient id="bar3c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a5a30" stop-opacity="0.5"/><stop offset="100%" stop-color="#2a5a30" stop-opacity="0.12"/></linearGradient>
+          <marker id="arr3d" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto"><path d="M0,0 L4,6 L8,0" fill="#ffb7b2" opacity="0.7"/></marker>
+          <marker id="arr3r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#ffb7b2" opacity="0.7"/></marker>
+          <filter id="bar-glow-f"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Baseline -->
+        <line x1="40" y1="165" x2="560" y2="165" stroke="#444" stroke-opacity="0.3" stroke-width="0.5"/>
+        <!-- Bar 1: 新鲜凋落物 (100) — height 115 -->
+        <rect x="60" y="40" width="130" height="115" rx="6" fill="url(#bar3a)" stroke="#6a9e6a" stroke-width="1.5" class="bar-glow" filter="url(#bar-glow-f)"/>
+        <text x="125" y="75" text-anchor="middle" fill="#d0ecd0" font-size="17" font-family="'Noto Serif SC',serif" font-weight="600">新鲜凋落物</text>
+        <text x="125" y="105" text-anchor="middle" fill="#6a9e6a" font-size="28" font-family="'DM Mono',monospace">100</text>
+        <text x="125" y="125" text-anchor="middle" fill="#6a9e6a" font-size="11" font-family="'DM Mono',monospace" opacity="0.5">tC/m²/yr</text>
+        <!-- Bar 2: 木质素 (30) — height 65 -->
+        <rect x="235" y="90" width="130" height="65" rx="6" fill="url(#bar3b)" stroke="#4a8050" stroke-width="1.5" class="bar-glow2" filter="url(#bar-glow-f)"/>
+        <text x="300" y="115" text-anchor="middle" fill="#b0d8b0" font-size="17" font-family="'Noto Serif SC',serif" font-weight="600">木质素</text>
+        <text x="300" y="140" text-anchor="middle" fill="#4a8050" font-size="28" font-family="'DM Mono',monospace">30</text>
+        <!-- Bar 3: 黑碳 (5) — height 28 -->
+        <rect x="410" y="127" width="130" height="28" rx="6" fill="url(#bar3c)" stroke="#2a5a30" stroke-width="1.5" class="bar-glow3" filter="url(#bar-glow-f)"/>
+        <text x="475" y="146" text-anchor="middle" fill="#90c090" font-size="15" font-family="'Noto Serif SC',serif" font-weight="600">黑碳  5</text>
+        <!-- Mineralization arrows (upward = CO2 loss) -->
+        <line x1="125" y1="37" x2="125" y2="18" stroke="#ffb7b2" stroke-width="1.5" marker-end="url(#arr3d)" class="arr-pulse"/>
+        <line x1="300" y1="87" x2="300" y2="68" stroke="#ffb7b2" stroke-width="1.5" marker-end="url(#arr3d)" class="arr-pulse2"/>
+        <line x1="475" y1="124" x2="475" y2="108" stroke="#ffb7b2" stroke-width="1.5" marker-end="url(#arr3d)" class="arr-pulse3"/>
+        <!-- Loss labels -->
+        <text x="125" y="14" text-anchor="middle" fill="#ffb7b2" font-size="11" font-family="'DM Mono',monospace" opacity="0.5">矿化 → CO₂ ↑</text>
+        <text x="300" y="64" text-anchor="middle" fill="#ffb7b2" font-size="11" font-family="'DM Mono',monospace" opacity="0.5">矿化 → CO₂ ↑</text>
+        <text x="475" y="104" text-anchor="middle" fill="#ffb7b2" font-size="11" font-family="'DM Mono',monospace" opacity="0.5">矿化 → CO₂ ↑</text>
+        <!-- CO2 PARTICLES: rising upward and fading (more from bar1, fewer from bar3) -->
+        <circle cx="115" cy="25" r="2.5" fill="#ffb7b2" class="co2-1"/>
+        <circle cx="135" cy="30" r="2" fill="#ffb7b2" class="co2-2"/>
+        <circle cx="105" cy="28" r="1.8" fill="#ffb7b2" class="co2-3"/>
+        <circle cx="140" cy="22" r="2.2" fill="#ffb7b2" class="co2-4"/>
+        <circle cx="290" cy="72" r="2.5" fill="#ffb7b2" class="co2-5"/>
+        <circle cx="310" cy="75" r="2" fill="#ffb7b2" class="co2-6"/>
+        <circle cx="465" cy="110" r="2" fill="#ffb7b2" class="co2-7"/>
+        <circle cx="485" cy="112" r="1.8" fill="#ffb7b2" class="co2-8"/>
+        <circle cx="300" cy="78" r="1.5" fill="#ffb7b2" class="co2-9"/>
+        <!-- CARBON SETTLE PARTICLES: sinking into bars (more in bar3 = higher retention) -->
+        <circle cx="100" cy="135" r="2" fill="#6a9e6a" class="cs-1"/>
+        <circle cx="150" cy="140" r="2.5" fill="#6a9e6a" class="cs-2"/>
+        <circle cx="275" cy="140" r="2" fill="#4a8050" class="cs-3"/>
+        <circle cx="325" cy="142" r="2.5" fill="#4a8050" class="cs-4"/>
+        <circle cx="450" cy="150" r="2" fill="#2a5a30" class="cs-5"/>
+        <circle cx="500" cy="150" r="2.5" fill="#2a5a30" class="cs-6"/>
+        <!-- Bond formation lines in stable carbon zone -->
+        <line x1="435" y1="145" x2="460" y2="148" stroke="#2a5a30" stroke-width="1" class="bond"/>
+        <line x1="465" y1="143" x2="490" y2="147" stroke="#2a5a30" stroke-width="1" class="bond2"/>
+        <line x1="495" y1="145" x2="520" y2="148" stroke="#2a5a30" stroke-width="1" class="bond3"/>
+        <!-- Horizontal connecting arrows -->
+        <line x1="194" y1="95" x2="230" y2="95" stroke="#ffb7b2" stroke-width="1.5" marker-end="url(#arr3r)" stroke-opacity="0.5"/>
+        <line x1="369" y1="120" x2="405" y2="120" stroke="#ffb7b2" stroke-width="1.5" marker-end="url(#arr3r)" stroke-opacity="0.5"/>
+        <!-- Efficiency gradient bar -->
+        <rect x="60" y="175" width="480" height="5" rx="2.5" fill="url(#effgrad)" opacity="0.6"/>
+        <defs><linearGradient id="effgrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#6a9e6a"/><stop offset="50%" stop-color="#4a8050"/><stop offset="100%" stop-color="#2a5a30"/></linearGradient></defs>
+        <text x="70" y="173" fill="#6a9e6a" font-size="10" font-family="'DM Mono',monospace" opacity="0.5">低固碳</text>
+        <text x="530" y="173" text-anchor="end" fill="#2a5a30" font-size="10" font-family="'DM Mono',monospace" opacity="0.5">高固碳</text>
+        <!-- Bottom label -->
+        <text x="300" y="200" text-anchor="middle" fill="#ffb7b2" font-size="14" font-family="'DM Mono',monospace" opacity="0.55">固碳效率逐步提升</text>
+      </svg>
     </div>
   </div>
 </section>
@@ -530,7 +887,7 @@
     <div class="journey-stop">
       <div class="journey-desc">
         <h3>微生物深度加工</h3>
-        <p><strong>肠道</strong>：回肠末端，微生物群发酵难消化纤维产生短链脂肪酸。<br><strong>土壤</strong>：细菌分泌胞外酶降解半纤维素，释放有机酸和酚类中间产物。</p>
+        <p><strong>肠道</strong>：结肠（大肠）中的微生物群发酵难消化纤维产生短链脂肪酸。<br><strong>土壤</strong>：细菌分泌胞外酶降解半纤维素，释放有机酸和酚类中间产物。</p>
       </div>
       <div class="journey-atom"><div class="atom-circle atom-circle--warm">C</div></div>
       <div class="journey-side"><span class="label">参与者</span><span>微生物群落</span><span class="label" style="margin-top:0.5rem">机制</span><span>体外修饰</span></div>
@@ -551,6 +908,26 @@
       <div class="journey-atom"><div class="atom-circle atom-circle--cool">C</div></div>
       <div class="journey-side"><span class="label">时间尺度</span><span>小时 ↔ 千年</span><span class="label" style="margin-top:0.5rem">意义</span><span>碳中和的关键</span></div>
     </div>
+  </div>
+</section>
+
+<!-- ===== VIDEO SECTION A ===== -->
+<section class="video-section" style="padding:4rem 2rem;max-width:900px;margin:0 auto;">
+  <h2 style="font-size:clamp(1.3rem,2.5vw,1.6rem);font-weight:600;text-align:center;margin-bottom:0.5rem;">📺 可视化学习（待补充）</h2>
+  <p style="text-align:center;color:var(--text-muted);font-weight:300;margin-bottom:2rem;font-size:0.9rem;">配合动画与 3D 演示，直观理解消化-土壤碳循环的同构机制</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;">
+    <a href="https://www.bilibili.com/video/BV1394y1k7gn/" target="_blank" rel="noopener noreferrer" title="待补充视频链接" style="display:block;padding:1.2rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);text-decoration:none;transition:border-color 0.3s;">
+      <span style="font-size:1.1rem;margin-right:0.5rem;">🔗</span>人体消化系统 3D 演示
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.4rem;font-family:'DM Mono',monospace;">观看：3D演示 食物的消化吸收全过程</div>
+    </a>
+    <a href="https://www.bilibili.com/video/BV14k4y177G1/" target="_blank" rel="noopener noreferrer" title="待补充视频链接" style="display:block;padding:1.2rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);text-decoration:none;transition:border-color 0.3s;">
+      <span style="font-size:1.1rem;margin-right:0.5rem;">🔗</span>土壤有机碳分解动画
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.4rem;font-family:'DM Mono',monospace;">观看：土壤微生物的分解作用（科普中国）</div>
+    </a>
+    <a href="https://www.bilibili.com/video/BV1UjkNBNEjC/" target="_blank" rel="noopener noreferrer" title="待补充视频链接" style="display:block;padding:1.2rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);text-decoration:none;transition:border-color 0.3s;">
+      <span style="font-size:1.1rem;margin-right:0.5rem;">🔗</span>酶动力学与微生物分解类比
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.4rem;font-family:'DM Mono',monospace;">观看：生物处理基本原理·酶动力学</div>
+    </a>
   </div>
 </section>
 
@@ -733,6 +1110,88 @@
   <div class="conclusion-summary">— 从肠道到土壤，碳的逻辑从未改变 —</div>
 </section>
 
+<!-- ===== VIDEO SECTION B ===== -->
+<section style="padding:3rem 2rem;max-width:900px;margin:0 auto;">
+  <h2 style="font-size:clamp(1.2rem,2.5vw,1.5rem);font-weight:600;text-align:center;margin-bottom:1.5rem;">📺 推荐科学视频（待补充）</h2>
+  <div style="display:flex;flex-direction:column;gap:0.75rem;max-width:560px;margin:0 auto;">
+    <a href="https://www.bilibili.com/video/BV1HJ41117Uv/" target="_blank" rel="noopener noreferrer" title="待补充视频链接" style="display:flex;align-items:center;gap:0.75rem;padding:1rem 1.2rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);text-decoration:none;transition:border-color 0.3s;">
+      <span style="font-size:1.2rem;">🔗</span>
+      <div>
+        <div style="font-weight:600;font-size:0.9rem;">The Soil Carbon Cycle (USDA)</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.2rem;font-family:'DM Mono',monospace;">观看：【Ted-ED】碳循环 The Carbon Cycle</div>
+      </div>
+    </a>
+    <a href="https://www.bilibili.com/video/BV14J411172T/" target="_blank" rel="noopener noreferrer" title="待补充视频链接" style="display:flex;align-items:center;gap:0.75rem;padding:1rem 1.2rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);text-decoration:none;transition:border-color 0.3s;">
+      <span style="font-size:1.2rem;">🔗</span>
+      <div>
+        <div style="font-weight:600;font-size:0.9rem;">How your digestive system works - TED-Ed</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.2rem;font-family:'DM Mono',monospace;">观看：【Ted-ED】消化系统的运作原理</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ===== EXPANDED READING (FOLDED) ===== -->
+<section style="padding:3rem 2rem;max-width:1000px;margin:0 auto;">
+  <details style="border:1px solid var(--border);border-radius:6px;background:var(--surface);overflow:hidden;">
+    <summary style="padding:1.2rem 1.5rem;cursor:pointer;font-size:clamp(1rem,2vw,1.2rem);font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem;user-select:none;transition:background 0.3s;" onmouseover="this.style.background='var(--surface-alt)'" onmouseout="this.style.background='transparent'">
+      📘 扩展阅读：其他类比研究
+    </summary>
+    <div style="padding:0 1.5rem 1.5rem;">
+
+      <!-- 泌尿系统精简版 -->
+      <div style="margin-bottom:2.5rem;">
+        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:var(--accent-cool);">🩸 泌尿系统 ⇄ 人工湿地</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.8;">肾单位的选择性重吸收与湿地基质的梯度净化——精密调控与生态冗余的殊途同归。</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:1rem;">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;width:18%;">维度</th>
+              <th style="text-align:left;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);color:var(--accent-cool);width:41%;">🩸 泌尿系统</th>
+              <th style="text-align:left;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);color:var(--accent-cool);width:41%;">🌿 人工湿地</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-dim);">调控精度</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">分子级别实时反馈（毫秒级）</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">工程设计 + 生态自组织（小时～天级）</td></tr>
+            <tr><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-dim);">能量方式</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">主动耗能转运（ATP 驱动）</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">以重力被动过程为主，生物部分为辅</td></tr>
+            <tr><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-dim);">恢复能力</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">功能单位损伤后受限（纤维化）</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">生态冗余度高，自我修复能力强</td></tr>
+            <tr><td style="padding:0.5rem 0.8rem;color:var(--text-dim);">时间尺度</td><td style="padding:0.5rem 0.8rem;color:var(--text-muted);">秒 ~ 分钟级闭环</td><td style="padding:0.5rem 0.8rem;color:var(--text-muted);">小时 ~ 天级响应</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.8;margin-bottom:0.75rem;">自然用 <strong style="color:var(--text-primary);">4 亿年</strong>演化出的肾单位净化方案，工程师用 <strong style="color:var(--text-primary);">几十年</strong>的湿地设计重新发现了相似的逻辑——本质上都是<strong style="color:var(--text-primary);">在梯度场中，用多级串联，实现选择性分离与转化。</strong></p>
+        <a href="q2.html" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;background:var(--accent-cool-dim);border:1px solid rgba(74,158,142,0.2);border-radius:3px;color:var(--accent-cool);font-size:0.8rem;text-decoration:none;font-family:'DM Mono',monospace;transition:all 0.3s;">查看完整模块 →</a>
+      </div>
+
+      <!-- 分隔线 -->
+      <div style="height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:2rem 0;"></div>
+
+      <!-- 呼吸系统精简版 -->
+      <div>
+        <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:0.75rem;color:var(--accent-cool);">🫁 呼吸系统 ⇄ 大气碳平衡</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.8;">肺泡、气孔、全球碳收支——Fick 扩散定律在三个尺度上的结构映射。</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:1rem;">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;width:18%;">维度</th>
+              <th style="text-align:left;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);color:var(--accent-cool);width:41%;">🫁 人体呼吸</th>
+              <th style="text-align:left;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border);color:var(--accent-cool);width:41%;">🌿 植被-大气系统</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-dim);">代谢方向</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">单向：组织恒为 O₂ 汇 / CO₂ 源</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">双向：光合与呼吸同时进行，净方向可逆</td></tr>
+            <tr><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-dim);">反馈速度</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">秒-分钟级化学感受器闭环</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">年-十年级，受气候系统耦合影响</td></tr>
+            <tr><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-dim);">源汇可逆性</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">同一组织不会翻转代谢角色</td><td style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text-muted);">同一森林可从碳汇翻转为碳源（砍伐、干旱）</td></tr>
+            <tr><td style="padding:0.5rem 0.8rem;color:var(--text-dim);">非生物组分</td><td style="padding:0.5rem 0.8rem;color:var(--text-muted);">无对应</td><td style="padding:0.5rem 0.8rem;color:var(--text-muted);">海洋吸收、化石燃烧等无肺泡类比的外部项</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.8;margin-bottom:0.75rem;">三个尺度共享同一扩散方程结构：<strong style="color:var(--text-primary);font-family:'DM Mono',monospace;">J = g · Δp</strong>——从肺泡到叶片到全球碳收支，Fick 定律的跨尺度实例化。</p>
+        <a href="q3.html" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;background:var(--accent-cool-dim);border:1px solid rgba(74,158,142,0.2);border-radius:3px;color:var(--accent-cool);font-size:0.8rem;text-decoration:none;font-family:'DM Mono',monospace;transition:all 0.3s;">查看完整模块 →</a>
+      </div>
+
+    </div>
+  </details>
+</section>
+
 <footer>基于代谢生态学与土壤微生物碳泵理论 · 文献综述页面</footer>
 
 <script>
@@ -771,6 +1230,7 @@
       document.getElementById(btn.dataset.panel).classList.add('active');
     });
   });
+
 </script>
 </body>
 </html>
